@@ -73,7 +73,9 @@ This setup allows us to reproduce the same telemetry workflow used in production
 
 ### Sending gNMI Requests Using the CLI
 
-To receive telemetry data, a gNMI client must connect to the switch and issue requests. In most production environments, this client runs on a centralized monitoring or automation server. For testing and experimentation, `gnmic` allows us to perform these operations directly from the command line. Run the following command from the collector node:
+To receive telemetry data, a gNMI client must connect to the switch and issue requests. In most production environments, this client runs on a centralized monitoring or automation server. For testing and experimentation, `gnmic` allows us to perform these operations directly from the command line.
+
+Run the following command from the collector node:
 
 ```bash
 gnmic \
@@ -187,7 +189,9 @@ gnmic \
   --encoding json_ietf
 ```
 
-The `target` field identifies the telemetry source. In SONiC it typically corresponds to the YANG namespace or datastore being accessed. The command requests sampled streaming telemetry, where the switch periodically sends updates for the specified path. SONiC enforces a minimum sampling interval of 30 seconds. This limit protects the control plane and Redis database from excessive load. If you get an unexpected results, then use the `--debug` flag to troubleshoot.
+The `target` field identifies the telemetry source. In SONiC it typically corresponds to the YANG namespace or datastore being accessed. The command requests sampled streaming telemetry, where the switch periodically sends updates for the specified path. SONiC enforces a minimum sampling interval of 30 seconds. This limit protects the control plane and Redis database from excessive load.
+
+> If you get an unexpected results, then use the `--debug` flag to troubleshoot.
 
 ## Discovering Available Paths
 
@@ -344,7 +348,9 @@ When subscribing to telemetry streams in code, the client sends a `SubscribeRequ
 
 ## The `openconfig-system` Model
 
-SONiC stores most configuration and operational state in a set of Redis databases, including CONFIG_DB, STATE_DB, APPL_DB, and COUNTERS_DB. These databases act as the central data store for the system, allowing different containers and services within SONiC to exchange configuration and runtime information. When a gNMI request reaches the gnmi container, the request is processed by the Translib translation layer. Translib interprets the requested YANG path and determines how the requested data should be retrieved (either from Redis or directly from the underlying Linux host).
+SONiC stores most configuration and operational state in a set of Redis databases, including `CONFIG_DB`, `STATE_DB`, `APPL_DB`, and `COUNTERS_DB`. These databases act as the central data store for the system, allowing different containers and services within SONiC to exchange configuration and runtime information.
+
+When a gNMI request reaches the gnmi container, the request is processed by the Translib translation layer. Translib interprets the requested YANG path and determines how the requested data should be retrieved (either from Redis or directly from the underlying Linux host).
 
 Most network-related OpenConfig models are backed entirely by Redis. In these cases, Translib translates the YANG path into the appropriate Redis keys and queries the corresponding database tables.
 
@@ -353,7 +359,9 @@ Most network-related OpenConfig models are backed entirely by Redis. In these ca
 - **openconfig-lldp**: Neighbor information is read from LLDP tables populated by the `lldp` container (primarily in `APPL_DB` / `STATE_DB`).
 - **openconfig-mclag**: Multi‑chassis LAG configuration and state are served from `STATE_DB` (and related Redis tables) via translib.
 
-The `openconfig-system` model differs slightly because it represents both device configuration and host-level system metrics. Some portions of the model behave like other OpenConfig modules: configuration and structured operational state (such as hostname, NTP configuration, AAA settings, and management interface parameters) are stored in Redis and exposed through Translib mappings. These values are retrieved in the same way as other network configuration objects.
+The `openconfig-system` model differs slightly. It represents both device configuration and host-level system metrics:
+
+Some portions of the model behave like other OpenConfig modules: configuration and structured operational state (such as hostname, NTP configuration, AAA settings, and management interface parameters) are stored in Redis and exposed through Translib mappings. These values are retrieved in the same way as other network configuration objects.
 
 However, certain elements of the `openconfig-system` model correspond to native operating system metrics that do not originate in Redis. Examples include CPU utilization, memory usage, and filesystem statistics. When these paths are requested, Translib invokes specialized backend handlers that query the underlying Linux system directly. These handlers typically read from kernel-provided system files such as `/proc/stat` and `/proc/meminfo`, or from other host APIs that expose real-time resource utilization.
 

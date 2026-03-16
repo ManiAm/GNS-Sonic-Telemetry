@@ -57,7 +57,7 @@ Example output:
 
 Successful connectivity confirms that the collector can communicate with the switch.
 
-## Installing a gNMI Client
+## Installing a gNMI Client in the Collector
 
 To interact with the SONiC telemetry service, we need a gNMI client. One of the most widely used tools for this purpose is `gnmic`, an open-source CLI client written in Go. Download and install the binary:
 

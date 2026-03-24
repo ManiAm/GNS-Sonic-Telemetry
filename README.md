@@ -345,3 +345,50 @@ gNMI uses Protocol Buffers (protobuf) to define its request and response structu
 These generated classes (`gnmi_pb2` and `gnmi_pb2_grpc`) allow applications to construct and send gNMI requests using a standard gRPC client.
 
 When subscribing to telemetry streams in code, the client sends a `SubscribeRequest` and maintains a persistent connection with the switch. The server then continuously pushes updates to the client as telemetry data changes.
+
+## Using YAML Configuration Files with `gnmic`
+
+While command-line flags are excellent for quick, one-off queries, constructing long commands with multiple paths and streaming parameters quickly becomes cumbersome. To handle complex telemetry setups, `gnmic` supports using YAML configuration files. Using a configuration file allows you to define multiple switch targets, complex subscription paths, and specific output destinations in a reusable format. This is highly recommended when you want to establish continuous telemetry collection.
+
+Below is a foundational example of a YAML configuration file that configures `gnmic` to maintain a continuous connection to the SONiC switch, collect interface counters every 30 seconds, and log the resulting telemetry directly into a local JSON file.
+
+```yaml
+# gnmic-config.yaml
+username: admin
+password: YourPassword
+insecure: true
+encoding: json_ietf
+
+targets:
+  sonic-switch:
+    address: 10.10.10.100:8080
+
+subscriptions:
+  ethernet0-counters:
+    target: OC-YANG
+    paths:
+      - /openconfig-interfaces:interfaces/interface[name=Ethernet0]/state/counters
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+
+outputs:
+  local-file-logger:
+    type: file
+    format: json
+    filename: telemetry-data.json
+```
+
+- **Global Settings**: The root-level parameters (`username`, `password`, `insecure`, `encoding`) establish the baseline connection rules that apply to all targets.
+
+- **Targets**: Defines the network devices `gnmic` will connect to. You can list multiple switches under this block to monitor an entire fabric simultaneously.
+
+- **Subscriptions**: Defines exactly what data to request. Here, it requests the OpenConfig interface counters using a sample mode, instructing the switch to push updates every 30s.
+
+- **Outputs**: Determines what `gnmic` does with the received telemetry. Instead of printing to the terminal screen, this block tells `gnmic` to write the incoming JSON data continuously to a local file named `telemetry-data.json`.
+
+To execute gnmic using this file, pass it via the `--config` flag followed by the gNMI operation:
+
+    gnmic --config gnmic-config.yaml subscribe
+
+The process will run continuously in the foreground. As it runs, you will see a new file called `telemetry-data.json` appear in your directory, which will automatically update with fresh interface statistics every 30 seconds.

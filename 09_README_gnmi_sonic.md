@@ -131,6 +131,27 @@ After translating the request, Translib interacts with SONiC’s centralized Red
 
 Once the requested data is retrieved or updated, Translib converts the Redis representation back into a YANG-compliant structure. The result is then serialized into either Protocol Buffers or JSON format and returned to the client through the gNMI server.
 
+## The `openconfig-system` Model
+
+SONiC stores most configuration and operational state in a set of Redis databases, including `CONFIG_DB`, `STATE_DB`, `APPL_DB`, and `COUNTERS_DB`. These databases act as the central data store for the system, allowing different containers and services within SONiC to exchange configuration and runtime information.
+
+When a gNMI request reaches the gnmi container, the request is processed by the Translib translation layer. Translib interprets the requested YANG path and determines how the requested data should be retrieved (either from Redis or directly from the underlying Linux host).
+
+Most network-related OpenConfig models are backed entirely by Redis. In these cases, Translib translates the YANG path into the appropriate Redis keys and queries the corresponding database tables.
+
+- **openconfig-interfaces**: Interface configuration and state come from `APPL_DB` / `STATE_DB`; interface counters come from `COUNTERS_DB`.
+- **openconfig-acl**: ACL definitions and rules are mapped to ACL tables in `CONFIG_DB` / `APPL_DB` via translib transformers.
+- **openconfig-lldp**: Neighbor information is read from LLDP tables populated by the `lldp` container (primarily in `APPL_DB` / `STATE_DB`).
+- **openconfig-mclag**: Multi‑chassis LAG configuration and state are served from `STATE_DB` (and related Redis tables) via translib.
+
+The `openconfig-system` model differs slightly. It represents both device configuration and host-level system metrics:
+
+Some portions of the model behave like other OpenConfig modules: configuration and structured operational state (such as hostname, NTP configuration, AAA settings, and management interface parameters) are stored in Redis and exposed through Translib mappings. These values are retrieved in the same way as other network configuration objects.
+
+However, certain elements of the `openconfig-system` model correspond to native operating system metrics that do not originate in Redis. Examples include CPU utilization, memory usage, and filesystem statistics. When these paths are requested, Translib invokes specialized backend handlers that query the underlying Linux system directly. These handlers typically read from kernel-provided system files such as `/proc/stat` and `/proc/meminfo`, or from other host APIs that expose real-time resource utilization.
+
+In practice, this means that the `openconfig-system` model uses a hybrid data retrieval approach. Configuration data and structured operational state generally flow through Redis, maintaining consistency with the rest of the SONiC architecture. In contrast, low-level host metrics bypass Redis and are obtained directly from the Linux operating system to provide accurate, real-time system information.
+
 ## YANG Models in SONiC
 
 To enable translation between gNMI requests and SONiC’s internal data representation, SONiC relies on a collection of YANG models and mapping annotations. These models are stored in the [SONiC management repository](https://github.com/sonic-net/sonic-mgmt-common/tree/master/models/yang). The directory structure organizes models into several categories.
@@ -185,3 +206,13 @@ SONiC tracks the version of its YANG model bundle using the file [version.xml](h
 **Patch version** increases for cosmetic changes that do not alter the API, such as documentation updates or expanded value ranges.
 
 This versioning system allows management systems to detect model changes and maintain compatibility with evolving APIs.
+
+## Defining Custom YANG Models
+
+OpenConfig allows vendors and developers to define custom YANG models. In SONiC, adding a new model requires several steps:
+
+- Write the custom `.yang` model.
+- Create an accompanying `-annot.yang` file describing how fields map to Redis.
+- Integrate the model into the SONiC build so the gNMI service recognizes the new paths.
+
+This mechanism enables developers to expose custom telemetry metrics or configuration parameters through the same standardized gNMI interface.

@@ -25,6 +25,34 @@ Example output:
 
 This output indicates that the telemetry process is listening on TCP port 8080, which is the default gNMI service port used in SONiC.
 
+## gNMI Port
+
+In most standard and community SONiC deployments, the `gnmi` container listens on port 8080 by default for insecure (plaintext) connections. In production environments where TLS/SSL is enabled for secure communication, gNMI is frequently configured to use port 50051 or 9339 (the standard OpenConfig gNMI port).
+
+Because SONiC is a fundamentally data-driven operating system, the `gnmi` container gets its operational parameters directly from the centralized Redis `CONFIG_DB`. To change the port, you need to update the `CONFIG_DB` and then restart the gNMI service.
+
+While it is possible to manually edit the `config_db.json` startup file, JSON syntax errors can cause configuration loads to fail. The safest and most reliable method is to inject the configuration directly into the running Redis database and then save those changes to disk.
+
+This command creates or updates the `GNMI|gnmi` table, sets the port to 9339, enables the service, and disables client authentication for testing purposes:
+
+    sudo sonic-db-cli CONFIG_DB hmset 'GNMI|gnmi' port 9339 admin_status up client_auth false
+
+This ensures your changes are written to `/etc/sonic/config_db.json` and will survive a system reboot:
+
+    sudo config save -y
+
+Restarting the container forces it to read the newly updated parameters from the Redis database.
+
+    sudo docker restart gnmi
+
+Check the active listening sockets to confirm the `gnmi` service is now bound to the new port.
+
+    sudo ss -lntp | grep telemetry
+
+Example output:
+
+    LISTEN 0      512                *:9339            *:*    users:(("telemetry",pid=19629,fd=11))
+
 ## Setting up the Collector
 
 The collector is a separate node that acts as the gNMI client. Its role is to connect to SONiC switches, request operational data, and receive streaming telemetry updates. Unlike the switch, which exposes the telemetry service, the collector initiates the connection and subscribes to the desired telemetry paths.

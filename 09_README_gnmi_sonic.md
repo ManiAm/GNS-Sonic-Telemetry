@@ -25,7 +25,7 @@ In modern SONiC releases, the management architecture is separated into multiple
 
 - `gnmi` container: This container hosts the gRPC server that implements the full gNMI protocol. It processes all gNMI operations, including configuration updates (Set), state queries (Get), and telemetry streaming (Subscribe). All gNMI traffic is handled exclusively by this container.
 
-- `mgmt-framework` container: This container provides REST-based management interfaces, primarily implementing RESTCONF over HTTPS. It also serves as the backend for the modern Klish CLI used in SONiC. Unlike the gnmi container, it does not run a gNMI server.
+- `mgmt-framework` container: This container provides REST-based management interfaces, primarily implementing RESTCONF over HTTPS. It also serves as the backend for the modern Klish CLI used in SONiC. Unlike the `gnmi` container, it does not run a gNMI server.
 
 ```text
 admin@sonic:~$ docker ps
@@ -60,7 +60,7 @@ The interaction between clients, containers, and internal data storage follows a
        │ gNMI RPC (Get/Set/Subscribe)
        ▼
 ┌─────────────────┐
-│  gnmi container │  ← gNMI/gRPC server (port 50051)
+│  gnmi container │  ← gNMI/gRPC server
 └────────┬────────┘
          │
          │ Uses TranslClient
@@ -97,7 +97,7 @@ When a gNMI client sends a request to a SONiC device, the request follows a stru
 
 ### Client Request
 
-A management system sends a gNMI Remote Procedure Call (RPC), such as `Get`, `Set`, or `Subscribe`, to the SONiC switch. The request is sent over gRPC, typically using a configurable port such as 50051.
+A management system sends a gNMI Remote Procedure Call (RPC), such as `Get`, `Set`, or `Subscribe`, to the SONiC switch. The request is sent over gRPC, typically using a configurable port.
 
 ### gnmi container
 

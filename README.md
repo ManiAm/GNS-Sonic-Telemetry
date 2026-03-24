@@ -387,8 +387,59 @@ outputs:
 
 - **Outputs**: Determines what `gnmic` does with the received telemetry. Instead of printing to the terminal screen, this block tells `gnmic` to write the incoming JSON data continuously to a local file named `telemetry-data.json`.
 
-To execute gnmic using this file, pass it via the `--config` flag followed by the gNMI operation:
+To execute `gnmic` using this file, pass it via the `--config` flag followed by the gNMI operation:
 
     gnmic --config gnmic-config.yaml subscribe
 
 The process will run continuously in the foreground. As it runs, you will see a new file called `telemetry-data.json` appear in your directory, which will automatically update with fresh interface statistics every 30 seconds.
+
+## Integrating with Prometheus
+
+In production environments, raw telemetry output (whether printed to the terminal or written to log files) is not sufficient for long-term monitoring, analysis, or alerting. This is where [Prometheus](https://prometheus.io/) becomes essential. Prometheus is a widely adopted time-series database and monitoring system that continuously collects metrics, stores them efficiently, and enables querying, alerting, and visualization (often via [Grafana](https://grafana.com/)). However, there is a fundamental mismatch in how data is collected: Prometheus uses a pull model, where it periodically scrapes metrics from HTTP endpoints, while SONiC telemetry (via gNMI) operates using a push model, streaming updates over gRPC connections.
+
+To bridge this gap, `gnmic` acts as a translation layer by functioning as a Prometheus exporter. In this mode, gnmic maintains a persistent gRPC subscription to the SONiC switch, continuously receiving telemetry updates. Instead of displaying this data in the terminal, it converts the incoming JSON or Protobuf telemetry into the specific plaintext format expected by Prometheus. At the same time, it runs a lightweight HTTP server that exposes these metrics at a `/metrics` endpoint. This effectively transforms push-based telemetry into a pull-compatible interface without modifying the switch or Prometheus itself.
+
+The configuration for this setup is defined in the following YAML file:
+
+```yaml
+# gnmic-config.yaml
+username: admin
+password: YourPassword
+insecure: true
+encoding: json_ietf
+
+targets:
+  sonic-switch:
+    address: 10.10.10.100:8080
+
+subscriptions:
+  ethernet0-counters:
+    target: OC-YANG
+    paths:
+      - /openconfig-interfaces:interfaces/interface[name=Ethernet0]/state/counters
+    mode: stream
+    stream-mode: sample
+    sample-interval: 30s
+
+outputs:
+  prom-exporter:
+    type: prometheus
+    listen: :9804
+    path: /metrics
+```
+
+Execute `gnmic` using this file:
+
+    gnmic --config gnmic-config.yaml subscribe
+
+Once the `gnmic` exporter is running, you need to instruct your Prometheus server to pull data from it. Open your `prometheus.yml` configuration file and add a new job under the `scrape_configs` section:
+
+```yaml
+scrape_configs:
+  - job_name: 'sonic-gnmi-telemetry'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['127.0.0.1:9804'] # The IP and port where gnmic is running
+```
+
+After restarting or reloading Prometheus, it will connect to the `gnmic` HTTP server every 30 seconds, pull the latest SONiC interface counters, and store them in its time-series database. From there, the data can be visualized using dashboards like Grafana.

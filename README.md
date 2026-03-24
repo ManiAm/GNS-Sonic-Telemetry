@@ -336,16 +336,6 @@ Sample output:
 /interfaces/interface[name=*]/type
 ```
 
-## Using gNMI in Code
-
-While CLI tools are convenient for testing, production telemetry collectors are typically implemented in code.
-
-gNMI uses Protocol Buffers (protobuf) to define its request and response structures. By compiling the `gnmi.proto` file, the protobuf compiler generates client libraries for multiple languages, including Python.
-
-These generated classes (`gnmi_pb2` and `gnmi_pb2_grpc`) allow applications to construct and send gNMI requests using a standard gRPC client.
-
-When subscribing to telemetry streams in code, the client sends a `SubscribeRequest` and maintains a persistent connection with the switch. The server then continuously pushes updates to the client as telemetry data changes.
-
 ## Using YAML Configuration Files with `gnmic`
 
 While command-line flags are excellent for quick, one-off queries, constructing long commands with multiple paths and streaming parameters quickly becomes cumbersome. To handle complex telemetry setups, `gnmic` supports using YAML configuration files. Using a configuration file allows you to define multiple switch targets, complex subscription paths, and specific output destinations in a reusable format. This is highly recommended when you want to establish continuous telemetry collection.
@@ -443,3 +433,13 @@ scrape_configs:
 ```
 
 After restarting or reloading Prometheus, it will connect to the `gnmic` HTTP server every 30 seconds, pull the latest SONiC interface counters, and store them in its time-series database. From there, the data can be visualized using dashboards like Grafana.
+
+## Using gNMI in Code
+
+While CLI tools are convenient for testing, production telemetry collectors are typically implemented in code.
+
+gNMI uses Protocol Buffers (protobuf) to define its request and response structures. By compiling the `gnmi.proto` file, the protobuf compiler generates client libraries for multiple languages, including Python.
+
+These generated classes (`gnmi_pb2` and `gnmi_pb2_grpc`) allow applications to construct and send gNMI requests using a standard gRPC client.
+
+When subscribing to telemetry streams in code, the client sends a `SubscribeRequest` and maintains a persistent connection with the switch. The server then continuously pushes updates to the client as telemetry data changes.

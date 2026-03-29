@@ -29,7 +29,7 @@ While gNMI can support JSON encoding, its native format is Protocol Buffers (Pro
 
 One of the most powerful capabilities of gNMI is its streaming telemetry mechanism. Instead of repeatedly polling devices for data, clients can subscribe to specific data paths to receive continuous updates. This **push-based** telemetry model is far more efficient than traditional **poll-based** methods such as SNMP or periodic REST queries. This push-based model significantly reduces network overhead and provides near real-time visibility into network behavior, making it particularly suitable for large-scale environments where thousands of devices must be monitored in real time.
 
-<img src="pics/snmp-vs-streaming.png" alt="segment" width="700">
+<img src="../pics/snmp-vs-streaming.png" alt="segment" width="700">
 
 > The primary drawback of gNMI is its higher technical complexity compared to REST-based interfaces. Developers must work with gRPC frameworks, compile Protocol Buffer definitions, and manage client libraries. This requires a stronger software development workflow than simply sending HTTP requests to a REST API. However, the performance and scalability benefits often outweigh this additional complexity in modern network infrastructures.
 
@@ -47,7 +47,7 @@ Because gNMI is implemented using gRPC, its entire architecture is defined using
 
 The `.proto` definitions are compiled using `protoc` to generate client and server libraries in multiple programming languages. The following shows a graphical representation of the `gnmi.proto`.
 
-<img src="pics/gnmi.png" alt="segment" width="1000">
+<img src="../pics/gnmi.png" alt="segment" width="1000">
 
 You may notice references to gNMI extensions. These extensions are defined in [gnmi_ext.proto](https://github.com/openconfig/gnmi/blob/master/proto/gnmi_ext/gnmi_ext.proto). This file allows vendors or platform implementations to add optional extensions to the core gNMI protocol without modifying the standard message definitions. By separating extensions into a dedicated module, the core gNMI protocol remains stable and interoperable while still allowing vendors to introduce additional functionality.
 
@@ -55,7 +55,7 @@ You may notice references to gNMI extensions. These extensions are defined in [g
 
 Within the `gnmi.proto` definitions, gNMI declares a service that exposes four main RPC operations. These operations define the primary management capabilities provided by the protocol.
 
-<img src="pics/gnmi-layers.png" alt="segment" width="550">
+<img src="../pics/gnmi-layers.png" alt="segment" width="550">
 
 ### Capabilities
 

@@ -21,7 +21,7 @@ The server hosts the actual implementation of the remote procedure. It listens f
 
 ## Core Components of RPC
 
-<img src="pics/rpc.webp" alt="segment" width="500">
+<img src="../pics/rpc.webp" alt="segment" width="500">
 
 ### Stub (Client Proxy)
 

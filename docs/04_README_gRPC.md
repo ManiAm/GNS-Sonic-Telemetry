@@ -22,7 +22,7 @@ gRPC supports multiple communication patterns that go beyond the traditional req
 
 In addition to unary calls, gRPC also supports streaming communication models. In server streaming, the client sends one request and the server returns a sequence of responses over time, which is useful for scenarios such as real-time market data or event feeds. In client streaming, the client sends multiple messages to the server and receives a single response when the stream completes, which is often used for uploading large datasets or logs. The most flexible model is bidirectional streaming, where both client and server can send messages independently over the same connection, enabling real-time interactions such as chat systems or live telemetry streams.
 
-<img src="pics/grpc_modes.png" alt="segment" width="700">
+<img src="../pics/grpc_modes.png" alt="segment" width="700">
 
 ### Data Format
 
@@ -56,13 +56,13 @@ Although REST APIs are typically designed to be stateless, gRPC provides flexibi
 
 One of the strengths of gRPC is its language-agnostic design. The Protocol Buffers service definition can be compiled into client and server code for many programming languages, including Python, Go, Java, C++, C#, Node.js, Ruby, and others. This allows services written in different languages to communicate using the same RPC interface definition. Because of this broad language support, gRPC is widely used in heterogeneous environments where different services may be implemented using different technology stacks. The shared `.proto` definitions ensure consistent communication regardless of the programming language used by each service.
 
-<img src="pics/grpc_language.jpg" alt="segment" width="700">
+<img src="../pics/grpc_language.jpg" alt="segment" width="700">
 
 ## The gRPC Workflow
 
 The development lifecycle of a gRPC application follows a contract-first approach, meaning that the service interface is defined before writing the client or server implementation. This process ensures that both sides of the communication adhere to the same service definition and data structures.
 
-<img src="pics/grpc_flow.png" alt="segment" width="650">
+<img src="../pics/grpc_flow.png" alt="segment" width="650">
 
 ### Define (Protocol Buffer Definitions)
 
@@ -119,7 +119,7 @@ message HelloReply { string message = 1; }
 
 You can visualize the proto file using [protodot](https://github.com/seamia/protodot) Golang utility.
 
-<img src="pics/helloworld.jpg" alt="segment" width="500">
+<img src="../pics/helloworld.jpg" alt="segment" width="500">
 
 The server implements the `GreeterServicer`. It listens on a specific port (e.g., 50051) and uses a thread pool to handle concurrent calls.
 

@@ -61,7 +61,7 @@ Variable-length encoding, commonly called `varint` encoding, is a technique used
 
 Varint encoding works by splitting an integer into 7-bit groups and storing each group in a byte. The most significant bit (MSB) of each byte is used as a continuation flag that indicates whether more bytes follow. If the MSB is set to 1, it means additional bytes are part of the number. If it is 0, the current byte is the final one. This design allows integers to be encoded using as few bytes as necessary. For example, a value between 0 and 127 requires only one byte, while larger numbers may require several bytes.
 
-<img src="pics/protobuf-varint-encoding.jpg" alt="segment" width="400">
+<img src="../pics/protobuf-varint-encoding.jpg" alt="segment" width="400">
 
 The primary reason for using varint encoding is efficiency. Because many values in typical data structures are small, varints significantly reduce the size of serialized messages compared to fixed-size integers. Smaller message sizes lead to lower storage requirements, faster network transmission, and improved overall performance when large volumes of data are exchanged.
 
@@ -192,7 +192,7 @@ Once the dot file is generated, you can generate the diagram using Graphviz.
 
 This generates a graphical representation of the message schema.
 
-<img src="pics/pb_person.jpg" alt="segment" width="800">
+<img src="../pics/pb_person.jpg" alt="segment" width="800">
 
 ## Protocol Buffers Compiler (`protoc`)
 

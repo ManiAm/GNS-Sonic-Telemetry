@@ -3,19 +3,23 @@
 
 The objective of this project is to establish a structured framework for collecting, streaming, and analyzing telemetry data from network switches running the SONiC operating system.
 
-Traditional network monitoring systems relied heavily on **poll-based** protocols such as SNMP. In those systems, a monitoring server periodically queries devices at fixed intervals to retrieve counters or operational state. While this approach works for basic monitoring, it introduces significant limitations. Polling intervals are typically measured in seconds or minutes, which can hide short-lived events such as micro-bursts, transient packet drops, or rapid control-plane changes.
+## Poll-Based vs. Push-Based Telemetry
 
-Modern network telemetry addresses these limitations by adopting a **push-based** streaming model. Instead of repeatedly polling the device, the switch continuously streams structured operational data to a collector in near real time. This allows operators and monitoring systems to observe network behavior at much higher resolution and react more quickly to abnormal conditions.
+Traditional network monitoring systems relied heavily on **poll-based** protocols such as SNMP. In those systems, a monitoring server periodically queries devices at fixed intervals to retrieve counters or operational state. While this approach works for basic monitoring, it introduces significant limitations. Polling intervals are typically measured in seconds or minutes, which can hide short-lived events such as micro-bursts, transient packet drops, or rapid control-plane changes. Additionally, poll-based architectures scale poorly; querying thousands of devices at high frequencies overwhelms central polling servers and places a heavy CPU burden on the network switches themselves.
 
-The telemetry data collected from SONiC switches can include several categories of operational information:
+Modern network telemetry addresses these limitations by adopting a **push-based** streaming model. Instead of repeatedly polling the device, the switch continuously streams structured operational data to a collector in near real time. This allows operators and monitoring systems to observe network behavior at much higher resolution and react more quickly to abnormal conditions. However, this architectural shift moves the scalability bottleneck from the network to the data center. The sheer volume of continuous, high-resolution telemetry requires robust, high-throughput ingestion pipelines to process and store the data without being overwhelmed.
+
+## Telemetry Data in Network Switches
+
+The telemetry data collected from network switches can include several categories of operational information:
 
 - **Hardware Health**: CPU utilization, memory usage, fan speeds, power supply status, and temperature sensors. These metrics help detect hardware degradation, cooling failures, or resource exhaustion before they impact system stability.
 
 - **Interface Statistics**: Detailed counters for received and transmitted traffic, including octets, packets, errors, and drops. Optical transceiver diagnostics (DOM) such as temperature, voltage, and laser power are also commonly included.
 
-- **Protocol State**: Control-plane information such as BGP neighbor sessions, MAC address learning events, routing updates, and other protocol-level state changes.
+- **Control Plane Information**: Protocol state and control-plane events, such as BGP neighbor sessions, MAC address learning, routing updates, and other topology changes.
 
-- **Dataplane Metrics**: Low-level hardware indicators such as buffer queue occupancy, congestion signals, and watermarks that provide insight into how traffic is handled inside the switch ASIC.
+- **Dataplane Information**: Low-level hardware indicators such as buffer queue occupancy, congestion signals, and watermarks that provide insight into how traffic is handled inside the switch ASIC.
 
 Together, these telemetry streams provide a comprehensive and high-resolution view of both the control plane and the data plane of the network.
 
@@ -33,7 +37,7 @@ Continuous telemetry collection has become a fundamental capability in modern da
 
 ## The Technology Stack: gNMI
 
-SONiC supports modern telemetry collection through `gNMI` (gRPC Network Management Interface), a protocol developed as part of the OpenConfig ecosystem.
+Modern telemetry collection is supported through `gNMI` (gRPC Network Management Interface), a protocol developed as part of the OpenConfig ecosystem.
 
 gNMI is designed to provide a unified interface for retrieving operational state, managing configuration, and subscribing to streaming telemetry updates. It is built on top of `gRPC`, which itself uses HTTP/2 as its transport layer. This architecture enables efficient, persistent connections between the network device and telemetry collectors, allowing high-frequency data streaming without the overhead associated with traditional polling mechanisms.
 
@@ -45,15 +49,15 @@ By combining gRPC, Protocol Buffers, and YANG-based data models, gNMI enables sc
 
 Because the technologies involved in modern telemetry such as RPC frameworks, serialization formats, and data modeling can be complex, this project includes a structured set of guides designed to build knowledge progressively. The following documents introduce the underlying concepts step by step, beginning with basic remote communication principles and gradually moving toward SONiC-specific telemetry implementations.
 
-- [Remote Procedure Calls (RPC)](./01_README_RPC.md): Introduction to Remote Procedure Calls (RPC).
-- [JSON-RPC](./02_README_json_rpc.md): Understanding JSON-RPC mechanics.
-- [Protocol Buffers (Protobuf)](./03_README_proto.md): Data serialization using Protocol Buffers (Protobuf).
-- [gRPC framework](./04_README_gRPC.md): The gRPC framework and HTTP/2 transport.
-- [gRPC networking suite](./05_README_grpc_suite.md): gRPC-based networking suites.
-- [Data modeling with YANG](./06_README_yang.md): Data modeling with YANG and OpenConfig.
-- [Network management protocols](./07_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
-- [gNMI core concepts](./08_README_gnmi.md): Core operations and capabilities of the gNMI standard.
-- [gNMI in SONiC](./09_README_gnmi_sonic.md): Implementing and consuming gNMI specifically within the SONiC OS.
+- [Remote Procedure Calls (RPC)](./docs/01_README_RPC.md): Introduction to Remote Procedure Calls (RPC).
+- [JSON-RPC](./docs/02_README_json_rpc.md): Understanding JSON-RPC mechanics.
+- [Protocol Buffers (Protobuf)](./docs/03_README_proto.md): Data serialization using Protocol Buffers (Protobuf).
+- [gRPC framework](./docs/04_README_gRPC.md): The gRPC framework and HTTP/2 transport.
+- [gRPC networking suite](./docs/05_README_grpc_suite.md): gRPC-based networking suites.
+- [Data modeling with YANG](./docs/06_README_yang.md): Data modeling with YANG and OpenConfig.
+- [Network management protocols](./docs/07_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
+- [gNMI core concepts](./docs/08_README_gnmi.md): Core operations and capabilities of the gNMI standard.
+- [gNMI in SONiC](./docs/09_README_gnmi_sonic.md): Implementing and consuming gNMI specifically within the SONiC OS.
 
 ## GNS3 Topology
 
@@ -69,7 +73,7 @@ The topology includes several key components:
 
 This setup allows us to reproduce the same telemetry workflow used in production environments: the network device publishes operational data, and external systems collect and analyze it.
 
-> Follow the [setup guide](./GNS_node_setup.md) to configure the nodes used in the GNS3 topology.
+> Follow the [setup guide](./docs/GNS_node_setup.md) to configure the nodes used in the GNS3 topology.
 
 ### Sending gNMI Requests Using the CLI
 

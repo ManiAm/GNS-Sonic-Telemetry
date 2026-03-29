@@ -16,7 +16,7 @@ In networking, however, vendors and industry groups recognized the need for stan
 
 These protocols are not replacements for gRPC. Instead, they are standardized APIs built on top of gRPC, defining specific services and message formats that network devices and controllers can implement consistently.
 
-<img src="pics/grpc-suite.png" alt="segment" width="550">
+<img src="../pics/grpc-suite.png" alt="segment" width="550">
 
 ### `gNMI` (gRPC Network Management Interface)
 

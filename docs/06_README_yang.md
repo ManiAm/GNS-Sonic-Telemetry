@@ -176,7 +176,7 @@ Large YANG models are often divided into multiple files to improve organization,
 
 A submodule is a portion of a larger YANG module that has been separated into its own file for readability or maintainability. Even though the definitions are distributed across multiple files, they still logically belong to a single module. From the perspective of systems using the model, the module and all its submodules appear as one unified data model.
 
-<img src="pics/import_include.png" alt="segment" width="350">
+<img src="../pics/import_include.png" alt="segment" width="350">
 
 The `include` statement is used to incorporate a submodule into its parent module. Because the submodule belongs to the same module, it shares the same namespace and prefix as the parent. This means definitions inside the submodule can be referenced directly without adding a prefix. The primary purpose of `include` is therefore file organization, allowing a large module to be split into smaller pieces while still forming a single logical model.
 
@@ -354,7 +354,7 @@ XPath (XML Path Language) is a syntax for defining parts of an XML document. YAN
 
     pyang --plugindir . -f xpath engineer.yang
 
-<img src="pics/xpath-example.png" alt="segment" width="700">
+<img src="../pics/xpath-example.png" alt="segment" width="700">
 
 Suppose we want to add a constraint where the `commute` method of transportation is only applicable for engineers over a certain age, let's say 18. We can use a `must` statement with an XPath expression to enforce this rule. The `must` statement defines a constraint that must be satisfied for the data to be considered valid. It uses an XPath expression to specify the condition that must be true.
 
@@ -396,7 +396,7 @@ Companies that produce network hardware and software (like Cisco, Juniper, Huawe
 
 It is common for different vendors to create their own YANG models for the same network protocols or services. This situation arises because while a protocol itself may be standardized, different vendors might implement the protocol with vendor-specific features or extensions that are not covered by the standard models or they may choose to model standard features in ways that align more closely with their particular device architectures and management philosophies.
 
-<img src="pics/yang-stack.png" alt="segment" width="300">
+<img src="../pics/yang-stack.png" alt="segment" width="300">
 
 The existence of both standard and vendor-specific YANG models means that network operators often need to work with a mix of model types to fully manage their networks, especially in multi-vendor environments. This can complicate network management but also offers the flexibility to leverage the best features and capabilities of each vendor's devices. Tooling and platforms that can abstract these differences and normalize configurations across devices can help mitigate some of the complexity introduced by vendor-specific models.
 

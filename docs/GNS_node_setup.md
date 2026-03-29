@@ -100,7 +100,7 @@ Placing the binary in `/usr/local/bin` ensures it is available in the system pat
 
 In GNS3, you can make `/usr/local/bin` persistent so the tool remains available even after the container restarts.
 
-<img src="pics/folder-persistent.png" alt="segment" width="400">
+<img src="../pics/folder-persistent.png" alt="segment" width="400">
 
 Verify the installation:
 

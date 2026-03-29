@@ -14,7 +14,7 @@ In this architecture:
 - YANG defines the schema (the data model).
 - NETCONF, RESTCONF, and gNMI transport the data between systems.
 
-<img src="pics/yang_usage.png" alt="segment" width="500">
+<img src="../pics/yang_usage.png" alt="segment" width="500">
 
 **NETCONF** was the first protocol designed to work closely with YANG, providing a reliable and transactional mechanism for configuring network devices using XML-encoded remote procedure calls over SSH. Later, **RESTCONF** was introduced to make YANG-based management easier to integrate with web technologies by exposing YANG data models through RESTful HTTP APIs that support both XML and JSON. More recently, **gNMI** was developed for large-scale data center environments, using gRPC and Protocol Buffers to deliver high-performance configuration management and streaming telemetry based on YANG-modeled data.
 
@@ -34,7 +34,7 @@ NETCONF is a network management protocol designed specifically for configuring a
 
 NETCONF operates over a persistent SSH connection between the client (such as a network automation tool) and the network device. Communication occurs using XML-encoded Remote Procedure Calls (RPCs). The structure of configuration and operational data is defined using YANG data models, which specify the schema and validation rules for the data exchanged between the client and the device. In this model-driven architecture, YANG defines the structure of the data, while NETCONF provides the protocol used to transport and manipulate that data.
 
-<img src="pics/netconf.png" alt="segment" width="600">
+<img src="../pics/netconf.png" alt="segment" width="600">
 
 One of the strongest capabilities of NETCONF is its support for **transactional** configuration management. Devices maintain configuration datastores such as running, candidate, and startup. Administrators can lock a configuration datastore to prevent concurrent modifications, apply configuration changes to the candidate datastore, validate those changes against the YANG model, and then commit them atomically. If a configuration fails validation or produces unexpected results, the changes can be rolled back. These features make NETCONF particularly well suited for large enterprise networks where configuration consistency and safety are critical.
 

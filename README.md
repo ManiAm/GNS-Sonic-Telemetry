@@ -53,9 +53,9 @@ Because the technologies involved in modern telemetry such as RPC frameworks, se
 - [JSON-RPC](./docs/02_README_json_rpc.md): Understanding JSON-RPC mechanics.
 - [Protocol Buffers (Protobuf)](./docs/03_README_proto.md): Data serialization using Protocol Buffers (Protobuf).
 - [gRPC framework](./docs/04_README_gRPC.md): The gRPC framework and HTTP/2 transport.
-- [gRPC networking suite](./docs/05_README_grpc_suite.md): gRPC-based networking suites.
-- [Data modeling with YANG](./docs/06_README_yang.md): Data modeling with YANG and OpenConfig.
-- [Network management protocols](./docs/07_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
+- [Data modeling with YANG](./docs/05_README_yang.md): Data modeling with YANG and OpenConfig.
+- [Network management protocols](./docs/06_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
+- [gRPC networking suite](./docs/07_README_grpc_suite.md): gRPC-based networking suites.
 - [gNMI core concepts](./docs/08_README_gnmi.md): Core operations and capabilities of the gNMI standard.
 - [gNMI in SONiC](./docs/09_README_gnmi_sonic.md): Implementing and consuming gNMI specifically within the SONiC OS.
 

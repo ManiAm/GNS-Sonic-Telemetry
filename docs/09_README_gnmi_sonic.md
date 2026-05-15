@@ -1,7 +1,7 @@
 
 # gNMI in SONiC: Architecture and Implementation
 
-The gNMI specification defines the protocol, transport mechanism (gRPC over HTTP/2), and the set of RPC operations available to clients such as `Get`, `Set`, and `Subscribe`. However, the specification does not dictate how a network operating system must implement these operations internally. Each vendor or network operating system is responsible for implementing the server-side architecture that processes gNMI requests and retrieves or modifies the corresponding device data.
+This document builds on the concepts covered in the [gNMI guide](./08_README_gnmi.md). The gNMI specification defines the protocol, transport mechanism (gRPC over HTTP/2), and the set of RPC operations available to clients such as `Get`, `Set`, and `Subscribe`. However, the specification does not dictate how a network operating system must implement these operations internally. Each vendor or network operating system is responsible for implementing the server-side architecture that processes gNMI requests and retrieves or modifies the corresponding device data.
 
 In SONiC, implementing gNMI requires bridging two different architectural models. On the client side, gNMI requests follow OpenConfig YANG models, which represent device configuration and operational data as hierarchical data trees. Internally, however, SONiC stores its configuration and operational state in a centralized Redis database architecture. As a result, SONiC must translate between the hierarchical YANG data model used by gNMI clients and the table-based Redis schema used internally. This translation layer is implemented through `Translib`, which converts YANG-based requests into operations on SONiC’s Redis databases.
 

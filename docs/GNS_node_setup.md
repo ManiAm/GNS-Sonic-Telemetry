@@ -1,4 +1,8 @@
 
+# GNS3 Lab Setup
+
+> This guide assumes familiarity with the concepts covered in [gNMI](./08_README_gnmi.md) and [gNMI in SONiC](./09_README_gnmi_sonic.md).
+
 ## Setting up the Management Host
 
 The management-host is implemented as a Docker container based on Ubuntu 20.04.2 LTS. In this topology it functions primarily as a DHCP server, allowing SONiC switches and other nodes to automatically obtain management IP addresses. Providing DHCP simplifies the lab setup and mimics real data center deployments where switches are provisioned automatically during boot. Once the switches receive their management addresses, they can be reached by automation systems, telemetry collectors, and configuration tools.

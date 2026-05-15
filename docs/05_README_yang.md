@@ -1,19 +1,17 @@
 
-# Network Management Protocols
-
-Network management protocols define how external systems such as monitoring platforms, controllers, or automation frameworks communicate with network devices like routers and switches. These protocols allow management systems to retrieve operational data, configure device parameters, and monitor the health and performance of network infrastructure in a structured and programmatic way.
-
-Historically, one of the earliest and most widely deployed network management protocols is `SNMP` (Simple Network Management Protocol). Introduced in the late 1980s, SNMP was primarily designed for monitoring network devices. It allows management systems to query devices for operational metrics such as interface counters, CPU utilization, memory usage, and other statistics. SNMP organizes this information using Management Information Bases (MIBs), which define the structure of the data that can be retrieved from a device.
-
-Although SNMP technically supports configuration changes, it has historically been used mainly for monitoring. Its data models were relatively rigid and not well suited for representing complex hierarchical configuration data. As networks became larger and automation became more important, engineers increasingly relied on device Command Line Interfaces (CLI) for configuration. However, automating CLI interactions required parsing text output (a fragile technique commonly referred to as **screen scraping**). Even small formatting changes in CLI output could break automation scripts, making large-scale automation difficult to maintain.
-
-To address these limitations, the networking industry moved toward model-driven network management. This approach separates the data model from the transport protocol, allowing devices and management systems to exchange structured data defined by a common schema. As part of this effort, the IETF introduced `YANG`, a standardized data modeling language designed specifically for network configuration and operational data.
-
-## YANG (Yet Another Next Generation)
+# YANG (Yet Another Next Generation)
 
 YANG is a data modeling language used to describe the configuration and operational data of network devices such as routers, switches, and firewalls. It defines the structure of network management data, including the hierarchy of configuration elements, allowed data types, constraints, and relationships between fields.
 
-In practical terms, YANG acts as a schema for network device data. For example, if a network operator needs to configure an interface IP address or retrieve interface statistics, the YANG model defines the exact structure of those data elements, their types, and any valid ranges. This ensures that both network devices and management systems interpret configuration and operational data in a consistent and predictable way.
+## Why YANG Was Introduced
+
+Earlier approaches to network management relied on SNMP for monitoring and CLI for configuration. However, SNMP's data models were relatively rigid, and automating CLI interactions was fragile due to reliance on text parsing (commonly referred to as **screen scraping**). These limitations are discussed in detail in [Network Management Protocols](./06_README_network_management.md).
+
+To address these challenges, the networking industry moved toward model-driven network management. This approach separates the data model from the transport protocol, allowing devices and management systems to exchange structured data defined by a common schema. YANG was standardized by the IETF as the data modeling language for this purpose.
+
+## What YANG Does
+
+YANG acts as a schema for network device data. For example, if a network operator needs to configure an interface IP address or retrieve interface statistics, the YANG model defines the exact structure of those data elements, their types, and any valid ranges. This ensures that both network devices and management systems interpret configuration and operational data in a consistent and predictable way.
 
 Unlike SNMP MIBs, which were primarily designed for monitoring, YANG was built to support both configuration management and operational state retrieval. Its hierarchical data model makes it possible to represent complex device configurations in a structured and vendor-neutral way. This enables automation platforms to interact with devices from different vendors using a consistent schema.
 
@@ -404,4 +402,6 @@ The existence of both standard and vendor-specific YANG models means that networ
 
 OpenConfig is an effort among multiple network operators to develop and deploy vendor-neutral data models for configuring and managing networks in a standardized and simplified manner. It represents a collaborative initiative aimed at moving network configuration away from traditional, vendor-specific interfaces towards a more open, model-driven approach.
 
-OpenConfig's primary focus is on creating YANG models that are directly usable for automating the configuration and management of network devices. OpenConfig data models are written in YANG v1.0. The official distribution channel for OpenConfig YANG models is [this](https://github.com/openconfig/public/) public GitHub repository. You can find the documentations in [here](https://openconfig.net/projects/models/schemadocs/).
+OpenConfig's primary focus is on creating YANG models that are directly usable for automating the configuration and management of network devices. OpenConfig data models are written in YANG v1.0. The official distribution channel for OpenConfig YANG models is [this](https://github.com/openconfig/public/) public GitHub repository. You can find the documentation [here](https://openconfig.net/projects/models/schemadocs/).
+
+> YANG data models are used by several network management protocols including NETCONF, RESTCONF, and gNMI. These protocols and their relationship to YANG are covered in [Network Management Protocols](./06_README_network_management.md) and [gNMI](./08_README_gnmi.md).

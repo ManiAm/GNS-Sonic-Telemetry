@@ -7,7 +7,7 @@ Protobuf allows developers to define data structures in a schema file (`.proto`)
 
 Compared to text-based formats such as JSON or XML, Protobuf produces smaller messages, faster serialization and parsing, and stronger schema guarantees. Because of these properties, it is commonly used for data storage, inter-process communication, and efficient data exchange between systems.
 
-Protocol Buffers is frequently used together with gRPC for defining service interfaces, but it is not limited to network communication. It can be used independently in any application that requires structured data serialization. We will go over gRPC in a separate document.
+Protocol Buffers is frequently used together with gRPC for defining service interfaces, but it is not limited to network communication. It can be used independently in any application that requires structured data serialization. gRPC is covered in [a separate document](./04_README_gRPC.md).
 
 ## Messages
 

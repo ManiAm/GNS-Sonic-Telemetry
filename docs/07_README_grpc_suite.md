@@ -22,7 +22,7 @@ These protocols are not replacements for gRPC. Instead, they are standardized AP
 
 gNMI is a standardized API for network configuration management and telemetry retrieval. It allows external systems such as network controllers, monitoring platforms, or automation tools to interact with network devices using a consistent interface. The protocol defines how configuration data and operational state information can be retrieved, modified, or monitored remotely.
 
-gNMI typically relies on YANG data models to define the structure of configuration and state data. Instead of using traditional command-line interfaces (CLI) or vendor-specific APIs, network operators can programmatically access device configuration using structured data models. This improves automation, consistency, and interoperability across different vendors and platforms.
+gNMI typically relies on [YANG data models](./05_README_yang.md) to define the structure of configuration and state data. Instead of using traditional command-line interfaces (CLI) or vendor-specific APIs, network operators can programmatically access device configuration using structured data models. This improves automation, consistency, and interoperability across different vendors and platforms.
 
 Another important feature of gNMI is streaming telemetry. Rather than repeatedly polling devices for status information, a controller can subscribe to specific data paths and receive continuous updates whenever values change. This subscription model greatly improves scalability and efficiency in large networks, particularly in modern data center environments where thousands of devices must be monitored in real time.
 
@@ -49,3 +49,5 @@ P4Runtime is a control-plane API used to manage the packet-processing behavior o
 The P4 language allows developers to define how packets are parsed, matched, and processed within a switch or network device. Once a P4 program defines the packet-processing pipeline, P4Runtime enables an external controller to populate tables, update match-action rules, and control forwarding behavior dynamically.
 
 This architecture enables highly flexible networking systems where packet-processing logic can be customized without modifying hardware. Network operators can implement new protocols, deploy custom forwarding policies, or adapt packet processing to specialized workloads. As a result, P4Runtime plays an important role in programmable networking environments and advanced data center architectures.
+
+> For a detailed discussion of gNMI, including its design principles, protocol specification, and RPC operations, refer to the [gNMI guide](./08_README_gnmi.md). For information on how gNMI is implemented in SONiC, see [gNMI in SONiC](./09_README_gnmi_sonic.md).

@@ -92,7 +92,7 @@ Modern distributed systems require significantly higher performance, scalability
 
 **gRPC**, introduced by Google in 2015, addresses these requirements by combining Protocol Buffers (a compact binary serialization format) with HTTP/2 as the transport layer. This design enables features such as bi-directional streaming, multiplexed connections, and efficient binary encoding, which dramatically improve performance compared to earlier RPC systems. gRPC also provides strong typing through service definitions written in `.proto` files, enabling automatic generation of client and server code in multiple programming languages.
 
-Because of its efficiency and scalability, gRPC has become a widely adopted technology in microservices architectures, cloud-native platforms, and high-performance distributed systems. We will cover gRPC in a separate document.
+Because of its efficiency and scalability, gRPC has become a widely adopted technology in microservices architectures, cloud-native platforms, and high-performance distributed systems. gRPC is covered in [a separate document](./04_README_gRPC.md).
 
 ## Typing in RPC
 
@@ -101,3 +101,5 @@ Typing in RPC refers to how strictly an RPC system defines and validates the dat
 In **strongly typed** RPC systems, the structure and data types of requests and responses are explicitly defined in advance using an interface definition or schema. Both the client and server generate code based on this definition, ensuring that parameters match the expected types before a request is transmitted. If the types do not match the defined schema, the request typically fails before reaching the server. This approach improves reliability, prevents many runtime errors, and enables features such as automatic code generation and compile-time validation. Frameworks such as CORBA, SOAP-RPC, and gRPC follow this model by requiring formal interface definitions (for example, IDL files or Protocol Buffer schemas).
 
 In contrast, **weakly typed** RPC systems allow more flexibility in the data that can be transmitted between client and server. These systems typically use dynamic serialization formats such as JSON or XML without enforcing strict schemas at the protocol level. As a result, clients can send parameters of different types without immediate validation, and the server must perform its own type checking when processing the request. While this approach simplifies implementation and improves interoperability across loosely coupled systems, it can introduce runtime errors if unexpected data types are received. Protocols such as XML-RPC and JSON-RPC follow this model, relying on the application logic rather than the protocol itself to enforce type correctness.
+
+> The next document provides a practical [JSON-RPC Example](./02_README_json_rpc.md) that demonstrates these RPC concepts using a simple Python implementation.

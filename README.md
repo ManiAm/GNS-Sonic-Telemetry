@@ -1,13 +1,7 @@
 
 # Sonic Telemetry
 
-The objective of this project is to establish a structured framework for collecting, streaming, and analyzing telemetry data from network switches running the SONiC operating system.
-
-## Poll-Based vs. Push-Based Telemetry
-
-Traditional network monitoring systems relied heavily on **poll-based** protocols such as SNMP. In those systems, a monitoring server periodically queries devices at fixed intervals to retrieve counters or operational state. While this approach works for basic monitoring, it introduces significant limitations. Polling intervals are typically measured in seconds or minutes, which can hide short-lived events such as micro-bursts, transient packet drops, or rapid control-plane changes. Additionally, poll-based architectures scale poorly; querying thousands of devices at high frequencies overwhelms central polling servers and places a heavy CPU burden on the network switches themselves.
-
-Modern network telemetry addresses these limitations by adopting a **push-based** streaming model. Instead of repeatedly polling the device, the switch continuously streams structured operational data to a collector in near real time. This allows operators and monitoring systems to observe network behavior at much higher resolution and react more quickly to abnormal conditions. However, this architectural shift moves the scalability bottleneck from the network to the data center. The sheer volume of continuous, high-resolution telemetry requires robust, high-throughput ingestion pipelines to process and store the data without being overwhelmed.
+The objective of this project is to establish a structured framework for collecting and analyzing telemetry data from network switches running the SONiC operating system.
 
 ## Telemetry Data in Network Switches
 
@@ -21,19 +15,35 @@ The telemetry data collected from network switches can include several categorie
 
 - **Dataplane Information**: Low-level hardware indicators such as buffer queue occupancy, congestion signals, and watermarks that provide insight into how traffic is handled inside the switch ASIC.
 
-Together, these telemetry streams provide a comprehensive and high-resolution view of both the control plane and the data plane of the network.
+Together, these telemetry data provide a comprehensive and high-resolution view of both the control plane and the data plane of the network.
 
 ## Why Telemetry Matters
 
 Continuous telemetry collection has become a fundamental capability in modern data center networks, particularly in hyperscale and large enterprise environments. Instead of relying on occasional snapshots of device state, operators can observe the network continuously and correlate events across thousands of devices.
 
-- **Real-Time Observability**: Streaming telemetry provides sub-second visibility into the operational state of the network. Because data is pushed directly from the device to collectors, monitoring systems can observe link utilization, queue behavior, and protocol state changes as they occur. This level of observability eliminates many of the blind spots that occur when devices are only polled at long intervals.
+- **Real-Time Observability**: Continuous telemetry provides sub-second visibility into the operational state of the network. Monitoring systems can observe link utilization, queue behavior, and protocol state changes as they occur, eliminating the blind spots that arise when device state is only captured at infrequent intervals.
 
 - **Proactive Fault Detection**: High-resolution telemetry enables operators to detect subtle problems before they escalate into outages. Examples include degrading optical transceivers, silent packet drops caused by congestion, unstable routing sessions, or abnormal hardware sensor readings. By detecting these conditions early, operators can intervene before application traffic is impacted.
 
 - **Capacity Planning**: Telemetry data collected over long periods provides valuable insight into traffic growth and infrastructure utilization. By analyzing trends in link utilization, CPU consumption, and memory usage, network engineers can make informed decisions about when to upgrade hardware, increase link capacity, or rebalance workloads across the network.
 
-- **AI-Driven Analytics and Automation**: Because streaming telemetry produces structured, machine-readable data, it can be integrated directly into analytics platforms, automation pipelines, and machine learning systems. These systems can detect anomalies, identify patterns, and automatically trigger remediation workflows. This approach enables closed-loop automation, where the network can automatically respond to detected issues without manual intervention.
+- **AI-Driven Analytics and Automation**: Because telemetry produces structured, machine-readable data, it can be integrated directly into analytics platforms, automation pipelines, and machine learning systems. These systems can detect anomalies, identify patterns, and automatically trigger remediation workflows. This approach enables closed-loop automation, where the network can automatically respond to detected issues without manual intervention.
+
+## Poll-Based vs. Push-Based Telemetry
+
+Traditional network monitoring systems relied heavily on **poll-based** protocols such as SNMP. In those systems, a monitoring server periodically queries devices at fixed intervals to retrieve counters or operational state. While this approach works for basic monitoring, it introduces significant limitations. Polling intervals are typically measured in seconds or minutes, which can hide short-lived events such as micro-bursts, transient packet drops, or rapid control-plane changes. Additionally, poll-based architectures scale poorly; querying thousands of devices at high frequencies overwhelms central polling servers and places a heavy CPU burden on the network switches themselves.
+
+Modern network telemetry addresses these limitations by adopting a **push-based** streaming model. Instead of repeatedly polling the device, the switch continuously streams structured operational data to a collector in near real time. This allows operators and monitoring systems to observe network behavior at much higher resolution and react more quickly to abnormal conditions. However, this architectural shift moves the scalability bottleneck from the network to the data center. The sheer volume of continuous, high-resolution telemetry requires robust, high-throughput ingestion pipelines to process and store the data without being overwhelmed.
+
+## In-Band vs. Out-of-Band Telemetry
+
+Telemetry systems also differ in how data is transported relative to the production traffic flowing through the network.
+
+**In-band telemetry** embeds monitoring metadata directly into the data packets as they traverse the network. Per-hop in-band telemetry such as [INT](https://p4.org/wp-content/uploads/sites/53/p4-spec/docs/INT_v2_1.pdf) (In-band Network Telemetry, a P4 Language Consortium specification), [IFA](https://datatracker.ietf.org/doc/draft-kumar-ippm-ifa/08/) (Inband Flow Analyzer), and [IOAM](https://datatracker.ietf.org/doc/html/rfc9197) (In-situ OAM, IETF RFC 9197) allow each switch along a packet's path to insert information such as timestamps, queue occupancy, and switch identifiers into packet headers. This provides per-packet, hop-by-hop visibility into forwarding behavior and is particularly useful for diagnosing latency variations and path-specific congestion. However, in-band telemetry requires specialized hardware support, modifies live traffic, and adds complexity to both the data plane and the analysis pipeline.
+
+**Out-of-band telemetry** collects operational data within the device and exports it over a separate management channel, independent of the production data path. The switch internally aggregates counters, state information, and events, then transmits them to external collectors through a dedicated management interface. This approach does not interfere with forwarding behavior, does not require modifications to data packets, and can be deployed on existing hardware without specialized ASIC capabilities.
+
+This project focuses on out-of-band telemetry. The switches export operational state and counters over a management connection using gNMI, keeping telemetry collection entirely separate from the production data plane.
 
 ## The Technology Stack: gNMI
 

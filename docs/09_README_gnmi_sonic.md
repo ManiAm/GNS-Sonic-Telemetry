@@ -49,146 +49,122 @@ Separating these interfaces ensures that heavy traffic on one interface such as 
 
 ## SONiC gNMI Architecture
 
-Implementing gNMI in SONiC requires bridging two different architectural models. On the client side, gNMI requests follow OpenConfig YANG models, which represent device configuration and operational data as hierarchical data trees. Internally, however, SONiC stores its configuration and operational state in a centralized Redis database architecture. The component responsible for bridging these two models is `Translib`, a translation layer that sits between the gNMI server and the Redis databases.
+The previous documents covered how YANG paths are [translated into Redis operations](05d_README_yang_translation_sonic.md) (Translib, annotation files, transformers) and how CONFIG_DB writes are [validated against native `sonic-*.yang` models](05c_README_yang_validation_sonic.md) (CVL). This section shows how these components fit together inside the gNMI request pipeline.
 
-The interaction between clients, containers, and internal data storage follows a layered architecture.
-
-```text
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-       │ gNMI RPC (Get/Set/Subscribe)
-       ▼
-┌─────────────────┐
-│  gnmi container │  ← gNMI/gRPC server
-└────────┬────────┘
-         │
-         │ Uses TranslClient
-         ▼
-┌─────────────────┐
-│    translib     │  ← Translation layer
-└────────┬────────┘
-         │
-         ├── CVL validates CONFIG_DB writes
-         │
-         │ Reads/Writes
-         ▼
-┌─────────────────┐
-│   Redis DBs     │  ← CONFIG_DB, STATE_DB, APPL_DB, COUNTERS_DB, etc.
-└─────────────────┘
-```
-
-In parallel, the mgmt-framework container also uses `Translib` when handling RESTCONF requests. Because both gNMI and RESTCONF share the same translation layer, SONiC maintains consistent behavior across management interfaces.
-
-```text
-┌───────────────────────────┐
-│ mgmt-framework container  │  ← RESTCONF server (REST API only)
-└───────────┬───────────────┘
-            │
-            │ Also uses translib
-            ▼
-   ┌─────────────────┐
-   │     translib    │
-   └─────────────────┘
-```
-
-## YANG Models in SONiC
-
-SONiC ships 17 OpenConfig/gNSI/IETF models, 149 native YANG modules, annotation files for Redis mapping, and a set of SONiC-specific YANG extensions (`sonic-ext:db-name`, `sonic-ext:custom-validation`, etc.). For a complete inventory grouped by functional area — including upstream code examples of every extension — see [YANG Models in SONiC](05c_README_yang_sonic.md).
-
-The key points relevant to the gNMI request flow described below are:
-
-- **OpenConfig models** define the standardized paths that gNMI clients use (e.g., `openconfig-interfaces`, `openconfig-system`).
-- **Annotation files** (`*-annot.yang`) provide declarative mappings between YANG elements and Redis tables, keys, and fields. For straightforward one-to-one mappings, annotations are sufficient; for complex cases, Translib delegates to custom transformer code.
-- **SONiC extensions** (e.g., `sonic-ext:db-name`, `sonic-ext:key-delim`) tell the framework which Redis database and key format a YANG container maps to.
+Both the `gnmi` container and the `mgmt-framework` container share the same `Translib` backend. Because both gNMI and RESTCONF use the same translation and validation layers, SONiC maintains consistent behavior across management interfaces.
 
 ## Request Processing and Data Flow
 
-When a gNMI client sends a request to a SONiC device, the request follows a structured processing pipeline through the components introduced above.
+The diagram below traces the full write path. The walkthrough that follows maps each stage to the diagram's numbered steps using a concrete example: setting the MTU on `Ethernet0` to 9100 via a gNMI `Set`.
 
-### Client Request
+<img src="../pics/cvl-write-flow.png" alt="CVL write-flow sequence diagram" width="1000">
 
-A management system sends a gNMI RPC such as `Get`, `Set`, or `Subscribe` to the SONiC switch over gRPC.
+### Step 1 — Client Request
 
-### gnmi Container
+A management system sends a gNMI `Set` RPC to the SONiC switch over gRPC. In this example, the request targets:
 
-The request is received by the gRPC server running inside the `gnmi` container, which dispatches it to Translib for processing.
+```text
+Path:  /openconfig-interfaces:interfaces/interface[name=Ethernet0]/config/mtu
+Value: 9100
+```
 
-### Translib (Translation Layer)
+The path follows the [`openconfig-interfaces`](https://github.com/sonic-net/sonic-mgmt-common/blob/master/models/yang/openconfig-interfaces.yang) YANG model, where `mtu` is defined as a `uint16` leaf under the `config` container of each interface. The gNMI server passes the URI and JSON payload to Translib Infra as `write(uri, json)` *(diagram step 1)*. The same flow applies to RESTCONF requests from the `mgmt-framework` container.
 
-Translib is the core translation component of the SONiC management architecture, implemented primarily in Go. It performs several critical functions:
+### Step 2 — Payload Validation
 
-- Translating OpenConfig YANG paths into SONiC Redis table and key structures
-- Validating requests against YANG models and enforcing schema constraints
-- Processing configuration changes and operational queries
-- Supporting subscription logic for telemetry streaming
-- Providing a common API shared by both the gNMI and RESTCONF management interfaces
+Translib Infra performs initial payload validation. For OpenConfig paths, the incoming JSON is unmarshalled into ygot-generated Go structs and checked against the OpenConfig YANG model's types and constraints. This catches malformed requests before any translation begins.
 
-The source code is available in the [SONiC repository](https://github.com/sonic-net/sonic-mgmt-common/tree/master/translib).
+### Steps 3–4 — Lock Acquisition and App Module Selection
 
-The translation between YANG paths and Redis operations is handled by **transformers**. A transformer is a Go module registered within Translib that defines how a specific YANG path maps to a Redis database, table, key, and field. For simple mappings, the default transformer uses the annotation files described earlier. For complex cases, developers write custom transformer code that implements the translation logic programmatically.
+Translib acquires a write lock *(step 3)* to ensure only one write transaction executes at a time, then calls `get_app_interface(uri)` *(step 4)* to select the appropriate App Module for the URI. For OpenConfig interface paths, this selects the transformer-based `CommonApp`.
 
-When a gNMI request arrives, Translib looks up the matching transformer based on the requested YANG path and delegates the Redis interaction to it.
+### Steps 5–9 — Translation
 
-Transformers are a critical implementation requirement. If a YANG model is added to SONiC but no corresponding transformer is registered, Translib will not return an error. Instead, it will return empty data for `Get` operations or silently fail to process `Set` operations. This means that adding a new YANG model requires both the model definition and a working transformer before the path becomes functional through gNMI or RESTCONF.
+The App Module initializes with the request data *(step 5)*, then calls `translateWrite` *(step 6)* to convert the OpenConfig path into Redis table, key, and field operations. Translib loads [`openconfig-interfaces-annot.yang`](https://github.com/sonic-net/sonic-mgmt-common/blob/master/models/yang/annotations/openconfig-interfaces-annot.yang) and finds three relevant annotations:
 
-### CVL (Config Validation Library)
+**Table selection** — the `interface` list is annotated with a table-transformer:
 
-Before any configuration change reaches CONFIG_DB, SONiC validates it using the **Config Validation Library** (CVL). CVL is a separate component from Translib that enforces YANG schema constraints specifically on CONFIG_DB writes. Whenever a `Set` operation modifies configuration data -- whether initiated through gNMI, the CLI, `config reload`, or any other mechanism -- CVL checks the proposed change against the corresponding YANG model.
+```yang
+deviation /oc-intf:interfaces/oc-intf:interface {
+    deviate add {
+        sonic-ext:table-transformer "intf_table_xfmr";
+    }
+}
+```
 
-CVL enforces constraints such as mandatory fields, valid value ranges, `must` expressions, and `leafref` foreign-key relationships. If a proposed configuration change violates any constraint, CVL rejects the write before it reaches CONFIG_DB. This ensures that only schema-compliant configuration data is stored in Redis, regardless of which management interface initiated the change.
+At runtime, the Go function `intf_table_xfmr` inspects the interface name. Because `Ethernet0` starts with `Ethernet`, it returns `PORT` as the target CONFIG_DB table. (A name starting with `PortChannel` would return `PORTCHANNEL`, `Vlan` would return `VLAN`, and so on.)
 
-### Redis Database Access
+**Key translation** — the `interface` list is also annotated with a key-transformer (`intf_tbl_key_xfmr`) that extracts `Ethernet0` from the YANG path and produces the Redis key `PORT|Ethernet0`.
 
-After translating the request, Translib interacts with SONiC's centralized Redis database infrastructure. SONiC uses multiple Redis databases, each dedicated to a specific category of information.
+**Field translation** — the `mtu` leaf is annotated with a field-transformer:
 
-- **CONFIG_DB**: Stores persistent configuration data. All configuration changes made through gNMI `Set` operations are written to this database.
+```yang
+deviation /oc-intf:interfaces/oc-intf:interface/oc-intf:config/oc-intf:mtu {
+    deviate add {
+        sonic-ext:field-transformer "intf_mtu_xfmr";
+    }
+}
+```
 
-- **STATE_DB**: Contains operational state information such as BGP neighbor status, hardware health indicators, temperature sensors, fan status, and other runtime metrics.
+The Go function `YangToDb_intf_mtu_xfmr` converts the OpenConfig `uint16` value into the string `"9100"` for Redis.
 
-- **COUNTERS_DB**: Maintains hardware and interface counters including packet statistics, byte counters, drops, errors, queue metrics, and buffer watermarks.
+Translation returns the translated keys and status *(step 7)*. The DB Access layer then opens a CVL validation session with `start(keys)` *(step 8)* and returns status *(step 9)*.
 
-- **APPL_DB**: Stores dynamic state managed by SONiC control-plane services, including routing table updates, MAC learning events, and other application-level data.
+The translated write is now:
 
-### Response to Client
+```text
+CONFIG_DB  →  PORT|Ethernet0  →  { "mtu": "9100" }
+```
 
-Once the requested data is retrieved or updated, Translib converts the Redis representation back into a YANG-compliant structure. The result is then serialized and returned to the client through the gNMI server.
+For full details on annotation files, extensions, and transformer types, see [YANG-to-Redis Translation](05d_README_yang_translation_sonic.md).
 
+### Steps 10–12 — Process Write
 
-## OpenConfig Model Mapping
+Translib Infra calls `processWrite` on the App Module *(step 10)*, which issues the `writes` to the DB Access layer *(step 11)*. The DB Access layer calls `validateWrite(keys, redis_payload)` on CVL *(step 12)* before anything reaches Redis.
 
-Most network-related OpenConfig models are backed entirely by Redis. Translib uses transformers to translate the YANG path into the appropriate Redis keys and query the corresponding database tables.
+### Steps 13–20 — CVL Validation
 
-- **openconfig-interfaces**: Interface configuration and state come from `APPL_DB` / `STATE_DB`; interface counters come from `COUNTERS_DB`.
-- **openconfig-acl**: ACL definitions and rules are mapped to ACL tables in `CONFIG_DB` / `APPL_DB` via transformers.
-- **openconfig-lldp**: Neighbor information is read from LLDP tables populated by the `lldp` container (primarily in `APPL_DB` / `STATE_DB`).
-- **openconfig-mclag**: Multi-chassis LAG configuration and state are served from `STATE_DB` (and related Redis tables) via transformers.
+CVL validates the translated data — not against the OpenConfig model, but against the **native** `sonic-port.yang` model, which defines the CONFIG_DB `PORT` table schema:
 
-### The `openconfig-system` Exception
+```yang
+list PORT_LIST {
+    key "name";
+    leaf mtu {
+        type uint16 {
+            range 68..9216;
+        }
+    }
+}
+```
 
-The `openconfig-system` model uses a hybrid data retrieval approach. Some portions behave like other OpenConfig modules: configuration and structured operational state (such as hostname, NTP configuration, AAA settings, and management interface parameters) are stored in Redis and exposed through Translib mappings.
+CVL runs four validation phases:
 
-However, certain elements correspond to native operating system metrics that do not originate in Redis. Examples include CPU utilization, memory usage, and filesystem statistics. When these paths are requested, Translib invokes specialized backend handlers that query the underlying Linux system directly, typically reading from kernel-provided files such as `/proc/stat` and `/proc/meminfo`.
+1. **`validateSyntax(redis_payload)`** *(step 13)* — checks field types, patterns, and value ranges. For this example, it verifies `9100` is a valid `uint16` within `68..9216`.
+2. **`checkKeys(keys)`** *(step 14)* — verifies the key `PORT|Ethernet0` is correctly formatted and unique. Returns status *(step 15)*.
+3. **`addDepData(redis_payload)` / `getDepData`** *(steps 16–18)* — fetches current CONFIG_DB state needed to evaluate cross-references (e.g., whether `Ethernet0` exists in the PORT table). Returns the dependent data as response *(step 18)*.
+4. **`validateSemantics(merged_data)`** *(step 19)* — resolves `leafref` foreign-key relationships, evaluates `must`/`when` expressions, and enforces `mandatory` fields against the merged state.
 
-## YANG Model Versioning
+CVL returns a pass/fail status *(step 20)*. If the client had sent `99999` (out of range) or `"banana"` (wrong type), CVL would reject at step 13 and the transaction would be rolled back.
 
-SONiC tracks the version of its YANG model bundle using the file [version.xml](https://github.com/sonic-net/sonic-mgmt-common/blob/master/models/yang/version.xml), which follows a `Major.Minor.Patch` versioning scheme.
+For CVL's validation details and which writers go through YANG validation, see [YANG Validation in SONiC](05c_README_yang_validation_sonic.md).
 
-**Major version** increases when changes are not backward compatible, such as deleting nodes, renaming elements, or modifying key attributes.
+### Steps 21–24 — Redis Commit
 
-**Minor version** increases when backward-compatible API changes are introduced, such as adding new data nodes or modules.
+CVL's success status propagates back through DB Access *(step 21)* to Translib Infra *(step 22)*. Translib then issues the Redis `commit` *(step 23)*:
 
-**Patch version** increases for cosmetic changes that do not alter the API, such as documentation updates or expanded value ranges.
+```text
+CONFIG_DB  →  HSET "PORT|Ethernet0" "mtu" "9100"
+```
 
-This versioning system allows management systems to detect model changes and maintain compatibility with evolving APIs.
+Redis confirms the write *(step 24)*. Different gNMI operations target different databases:
 
-## Defining Custom YANG Models
+- **CONFIG_DB** — persistent configuration data (gNMI `Set` writes here)
+- **APPL_DB** — dynamic state from control-plane services (routing, MAC learning)
+- **STATE_DB** — operational state (BGP neighbor status, hardware health, sensors)
+- **COUNTERS_DB** — interface counters, packet statistics, queue metrics
 
-SONiC allows vendors and developers to define custom YANG models. Adding a new model requires several steps:
+### Steps 25–26 — Response to Client
 
-- Write the custom `.yang` model.
-- Create an accompanying `-annot.yang` annotation file describing how fields map to Redis.
-- Implement a transformer in Go that handles the YANG-to-Redis translation for the new paths. Without a registered transformer, the new paths will return empty data even if the YANG model and Redis tables both exist.
-- Integrate the model into the SONiC build so the gNMI service recognizes the new paths.
+Translib releases the write lock *(step 25)* and returns a success response to the gNMI server, which sends it back to the client *(step 26)*.
 
-This mechanism enables developers to expose custom telemetry metrics or configuration parameters through the same standardized gNMI interface.
+For a `Get` request, the reverse path applies: Translib reads from Redis, and the `DbToYang_intf_mtu_xfmr` transformer converts the Redis string back into the OpenConfig `uint16` response.

@@ -508,7 +508,7 @@ The line `doc:doc-url "https://wiki.example.com/engineer-model"` uses the custom
 
 Extensions are the mechanism that makes YANG open-ended. Real-world systems use them extensively:
 
-- **SONiC** defines a [`sonic-extension`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/models/yang/sonic/common/sonic-extension.yang) module with extensions such as `sonic-ext:db-name`, `sonic-ext:custom-validation`, and `sonic-ext:dependent-on` to map YANG models to the SONiC Redis datastore and hook platform-specific validation logic. See [YANG Models in SONiC — SONiC Extension Definitions](05c_README_yang_sonic.md#sonic-extension-definitions) for detailed examples from upstream code.
+- **SONiC** defines a [`sonic-extension`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/models/yang/sonic/common/sonic-extension.yang) module with extensions such as `sonic-ext:db-name`, `sonic-ext:custom-validation`, and `sonic-ext:dependent-on` to map YANG models to the SONiC Redis datastore and hook platform-specific validation logic. See [YANG-to-Redis Translation — SONiC Extension Definitions](05d_README_yang_translation_sonic.md#sonic-extension-definitions) for detailed examples from upstream code.
 
 - **OpenConfig** defines `oc-ext:openconfig-version` to embed semantic version numbers in modules.
 

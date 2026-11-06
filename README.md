@@ -71,7 +71,8 @@ Because the technologies involved in modern telemetry such as RPC frameworks, se
 - [YANG introduction](./docs/05_README_yang.md): Data modeling with YANG and OpenConfig.
 - [YANG language reference](./docs/05a_README_yang_syntax.md): Detailed walkthrough of YANG syntax, types, and constructs.
 - [YANG validation](./docs/05b_README_yang_validation.md): How YANG models enforce data correctness, and the tools used to validate data.
-- [YANG models in SONiC](./docs/05c_README_yang_sonic.md): Inventory of OpenConfig, gNSI, and native YANG models shipped with SONiC, including extensions and annotations.
+- [YANG validation in SONiC](./docs/05c_README_yang_validation_sonic.md): How SONiC uses YANG to validate CONFIG_DB writes — CVL, sonic_yang, and which writers go through validation.
+- [YANG-to-Redis translation in SONiC](./docs/05d_README_yang_translation_sonic.md): How SONiC translates YANG paths to Redis operations — OpenConfig models, annotation files, transformers, and SONiC extension definitions.
 
 **Network Management & gNMI**
 

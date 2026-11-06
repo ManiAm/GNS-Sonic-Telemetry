@@ -16,7 +16,7 @@ module engineer {
     prefix "engineer";
     revision 2019-05-06;
     container engineer {
-        description "Its me";
+        description "Engineer record";
         leaf name {
             mandatory true;
             type string;
@@ -28,17 +28,17 @@ module engineer {
 }
 ```
 
-The `yang-version` statement is not the version number of the module but the version number of the YANG definition that the author has written the module to. Currently this would be 1.0 or 1.1. If this is a new module then starting with the latest version is advisable. A module that doesn't contain the `yang-version` statement, is developed for YANG version 1.0.
+The `yang-version` statement specifies which version of the YANG language specification the module conforms to — it is not the version of the module itself. The two possible values are `1.0` and `1.1`. If the statement is omitted, the module defaults to YANG version 1.0. For new modules, starting with version 1.1 is recommended.
 
 The `namespace` statement defines the XML namespace that all identifiers defined by the module are qualified by in the XML encoding. The argument to the namespace statement is the URI of the namespace.
 
-The `prefix` is the short name that can be used to quickly reference the modules. The prefix string may be used with the module to refer to definitions contained in the module, e.g., "if:ifName".
+The `prefix` is a short name used to reference the module. The prefix string can be combined with a definition name to form a qualified reference, for example `if:ifName`.
 
 The `revision` statement specifies the editorial revision history of the module, including the initial revision. A series of revision statements detail the changes in the module's definition. The argument is a date string in the format "YYYY-MM-DD", followed by a block of sub-statements that holds detailed revision information. A module should have at least one revision statement. Note that for every published editorial change, a new one should be added in front of the revisions sequence so that all revisions are in reverse chronological order.
 
-A `container` is used to group related nodes in a subtree. A container has only child nodes and no value. It may contain any number of child nodes of any type. As with the other items created so far, a short description should be added for a container. Inside a container a number of information elements, or leaves, will be placed. Container can be thought of a branch in a tree and leaves are the end of a branch where our information will sit. Containers and leaves should be used hierarchically. Containers can exist inside containers, however, containers cannot exist inside leaves.
+A `container` is used to group related nodes in a subtree. A container has only child nodes and no value. It may contain any number of child nodes of any type (including other containers). A short description should be added for every container. Inside a container, data elements called `leaf` nodes hold individual values. A container can be thought of as a branch in a tree, while leaves are the endpoints of a branch where actual data resides. Containers and leaves are organized hierarchically: containers can be nested inside other containers, but a leaf cannot contain child nodes.
 
-In our example above, container `engineer` has two leaves. The keyword `leaf` is used and then the leaf name is given. In this case, the leaf name is `name`. Each leaf has a type. In this case, the type is the built-in YANG type, `string`. We will go over built-in YANG types in future section. The `mandatory` tag is a boolean and should be set to true if the field is required and false (or not added at all, as the default is false) if not.
+In the example above, the `engineer` container has two leaves. The `leaf` keyword declares a data element, followed by its name. In this case, the first leaf is called `name` and its type is the built-in YANG type `string`. Built-in YANG types are covered in a later section. The `mandatory` statement accepts a boolean value and should be set to `true` if the leaf is required. If omitted, it defaults to `false`, meaning the leaf is optional.
 
 ## YANG Tree Structure
 
@@ -50,7 +50,7 @@ Save the YANG module that we discussed in the previous section into a file and n
 
     pyang -f tree engineer.yang
 
-The tree representation of the YANG module is shown as following:
+The tree representation of the YANG module is shown below:
 
 ```text
 module: engineer
@@ -117,7 +117,7 @@ leaf completed {
 }
 ```
 
-Let us improve our engineer YANG module by leveraging derived types. We are going to create `age_type` to represent the age of the engineer. This derived type describes the age of the engineer between the legal working age and retirement age. The age range is defined using the `range` statement. We will use age 18 as the legal working age and age 110 as the retirement age. The `..` characters are special and mean between. We can also use the `units` statement to provide the contextual unit of the range number.
+Let us improve our `engineer` module by leveraging derived types. We will create a typedef called `age_type` that constrains the age to a valid working range — 18 (minimum working age) through 110 (maximum retirement age). The `range` statement defines this constraint, and the `..` operator inside a range expression means "from … to" (inclusive on both ends). The `units` statement documents the measurement unit of the value.
 
 ```yang
 module engineer {
@@ -133,7 +133,7 @@ module engineer {
         units years;
     }
     container engineer {
-        description "Its me";
+        description "Engineer record";
         leaf name {
             mandatory true;
             type string;
@@ -178,7 +178,7 @@ module engineer_types {
     revision 2019-05-06;
     typedef age_type {
         description "Engineers start work at 18 and retire by 110";
-        type int8 {
+        type uint8 {
             range "18 .. 110";
         }
         units years;
@@ -208,11 +208,11 @@ module engineer {
     namespace "urn:nokia.com:srexperts:engineer";
     prefix "engineer";
     import engineer_types {
-      prefix "types";
+        prefix "types";
     }
     revision 2019-05-06;
     container engineer {
-        description "Its me";
+        description "Engineer record";
         leaf name {
             mandatory true;
             type string;
@@ -231,13 +231,131 @@ In this example, the `engineer` module imports the `engineer_types` module and a
 
 When a YANG compiler processes a module, it resolves dependencies by following any `import` or `include` statements encountered in the module header. The compiler loads the referenced modules or submodules so that all type definitions, groupings, and structures can be properly validated. For this reason, YANG specifications require that `import` and `include` statements appear in the header section of a module, before the main body of the data model.
 
+## Grouping and Uses in YANG
+
+When the same set of nodes appears in multiple places within a data model, duplicating them creates a maintenance burden. YANG provides the `grouping` and `uses` statements to solve this. A `grouping` defines a reusable collection of nodes, and a `uses` statement references that grouping to insert its nodes at a particular location in the tree. This is similar to a function or template in programming — define once, use many times.
+
+Suppose every engineer needs both a `phone` and an `email` leaf. Rather than repeating those leaves in every container that requires contact information, we can define them once as a grouping inside our `engineer_types` module.
+
+engineer_types.yang (add the grouping alongside the existing typedefs)
+
+```yang
+grouping contact-info {
+    description "Reusable contact information";
+    leaf phone {
+        type string;
+    }
+    leaf email {
+        type string;
+    }
+}
+```
+
+The `engineer` module can then pull in this grouping with a single `uses` statement.
+
+engineer.yang (updated)
+
+```yang
+module engineer {
+    yang-version 1.1;
+    namespace "urn:nokia.com:srexperts:engineer";
+    prefix "engineer";
+    import engineer_types {
+        prefix "types";
+    }
+    revision 2019-05-06;
+    container engineer {
+        description "Engineer record";
+        leaf name {
+            mandatory true;
+            type string;
+        }
+        leaf age {
+            type types:age_type;
+        }
+        leaf commute {
+            type types:transportation_type;
+        }
+        uses types:contact-info;
+    }
+}
+```
+
+The line `uses types:contact-info` tells the YANG compiler to insert the `phone` and `email` leaves defined in the `contact-info` grouping into the `engineer` container. Because the grouping is defined in a separate module (`engineer_types`), the `uses` statement must include the prefix. The resulting tree now includes the contact leaves:
+
+```text
+module: engineer
+  +--rw engineer
+     +--rw name       string
+     +--rw age?       types:age_type
+     +--rw commute?   types:transportation_type
+     +--rw phone?     string
+     +--rw email?     string
+```
+
+Groupings can contain any type of data node — leaves, containers, lists, and even nested `uses` references. A `uses` statement can also include a `refine` sub-statement to override properties of the grouping's nodes at the point of use, such as changing a default value or adding a `must` constraint. This flexibility makes groupings one of the primary mechanisms for building modular, maintainable YANG models.
+
+## Augment in YANG
+
+The `import` statement lets a module reference definitions *from* another module. The `augment` statement does the opposite — it lets a module inject new nodes *into* another module's schema tree, without modifying the original module's file.
+
+This is a key design principle in YANG: modules can be extended from the outside. A vendor can augment a standard model to add proprietary leaves, or a separate team can add fields to a shared model without coordinating edits to the same file. The `augment` statement takes a schema node path as its argument. This path identifies the target node in the other module's tree where the new nodes will be inserted.
+
+Let's create a new module, `engineer_security.yang`, that augments our `engineer` container to add a `clearance_level` leaf. This represents information managed by the security team, kept separate from the core engineer model.
+
+engineer_security.yang
+
+```yang
+module engineer_security {
+    yang-version 1.1;
+    namespace "urn:nokia.com:srexperts:security";
+    prefix "security";
+    import engineer {
+        prefix "eng";
+    }
+    revision 2019-05-06;
+    augment "/eng:engineer" {
+        description "Security team additions to the engineer model";
+        leaf clearance_level {
+            type enumeration {
+                enum public;
+                enum confidential;
+                enum secret;
+            }
+            default public;
+            description "Security clearance level of the engineer";
+        }
+    }
+}
+```
+
+The `augment "/eng:engineer"` statement targets the `engineer` container defined in the `engineer` module. The path uses the prefix `eng` that was assigned during import. Inside the `augment` block, we define a new `clearance_level` leaf. After augmentation, the combined tree looks like this:
+
+```text
+module: engineer
+  +--rw engineer
+     +--rw name              string
+     +--rw age?              types:age_type
+     +--rw commute?          types:transportation_type
+     +--rw phone?            string
+     +--rw email?            string
+     +--rw clearance_level?  enumeration
+```
+
+The original module (`engineer.yang`) is never modified. The `clearance_level` leaf exists only because `engineer_security.yang` is loaded alongside it. If the security module is removed, the original model reverts to its prior shape. A few additional points about `augment`:
+
+- The augmented path must refer to an existing node in the target module's schema tree.
+- `augment` can add any type of data node — leaves, containers, lists, choices, and more.
+- A `when` sub-statement can be placed inside the `augment` block to make the injected nodes conditional.
+- Augmentation is commonly used in the networking industry where standards bodies define base models (such as IETF or OpenConfig) and vendors augment them with device-specific features.
+
 ## List and Choice in YANG
 
-Now we have a basic YANG model comprising derived types and a number of leaves. This module can be enhanced with some additional fields. Engineers work on projects and need to eat and drink. The `project` will be a separate branch in the tree which means that it will be a container inside the `engineer` container.
+Our YANG model now includes derived types and several leaves. We can enhance it further with two common YANG constructs: **lists** and **choices**. To demonstrate, we will add a `project` container (a separate branch inside the `engineer` container) and a `food` list.
 
-As an engineer can work on zero or more work items, we will create a list called `work_item`. This list has two leaves: `work_item_name` and `deadline`. Lists require a specific field to be used as the key. The key entered must match a leaf inside the list. In this tutorial, the key will be called `work_item_name`.
+Since an engineer can work on zero or more work items, we create a `list` called `work_item`. This list has two leaves: `work_item_name` and `deadline`. Every list requires a `key` statement that identifies one or more leaves used to uniquely distinguish each entry. Here, the key is `work_item_name`.
 
-The `ordered-by` statement defines whether the order of entries within a list are determined by the user or the system. The argument is one of the strings "system" or "user". If not present, ordering defaults to "system". System ordered lists can appear in any order the server deems appropriate. This is often used where the processing of any items in a list is not dependent on any other item in that list. User ordered lists will appear in the tree based on the order in which they appear in the YANG module file. This is the order in which the list must be processed by any server.
+The `ordered-by` statement defines whether the order of entries within a list is determined by the user or the system. The argument is one of the strings `system` or `user`. If not present, ordering defaults to `system`. System-ordered lists can appear in any order the server deems appropriate — this is common when the processing of one entry does not depend on another. User-ordered lists preserve the sequence in which entries are created, which matters when processing order is significant.
 
 ```yang
 container engineer {
@@ -302,25 +420,101 @@ The new YANG tree will look like this:
 ```text
 module: engineer
   +--rw engineer
-  |  +--rw name       string
-  |  +--rw age?       types:age_type
-  |  +--rw commute?   types:transportation_type
-  |  +--rw food* [item_name]
-  |     +--rw item_name         string
-  |     +--rw (food_type)?
-  |        +--:(office)
-  |        |  +--rw coffee
-  |        |  |  +--rw size?   enumeration
-  |        |  |  +--rw milk?   boolean
-  |        |  +--rw donut?      empty
-  |        +--:(home)
-  |           +--rw salad?      empty
-  |           +--rw smoothie?   empty
-  +--rw project
-     +--rw work_item* [work_item_name]
-        +--rw work_item_name    string
-        +--rw deadline?         string
+     +--rw name              string
+     +--rw age?              types:age_type
+     +--rw commute?          types:transportation_type
+     +--rw food* [item_name]
+     |  +--rw item_name         string
+     |  +--rw (food_type)?
+     |     +--:(office)
+     |     |  +--rw coffee
+     |     |  |  +--rw size?   enumeration
+     |     |  |  +--rw milk?   boolean
+     |     |  +--rw donut?      empty
+     |     +--:(home)
+     |        +--rw salad?      empty
+     |        +--rw smoothie?   empty
+     +--rw project
+        +--rw work_item* [work_item_name]
+           +--rw work_item_name    string
+           +--rw deadline?         string
 ```
+
+## Extension in YANG
+
+YANG's built-in statements (`leaf`, `container`, `list`, `must`, `when`, and so on) cover the constructs needed to describe data models. However, some use cases require metadata or behavior that no built-in statement provides. The `extension` statement (RFC 7950 §7.19) lets a module author define a custom keyword that other modules can use. If `typedef` is the mechanism for creating custom *types*, then `extension` is the mechanism for creating custom *keywords*.
+
+An extension has two parts:
+
+1. **Definition** — The module that owns the extension uses the `extension` statement to declare the keyword's name and, optionally, an `argument` that the keyword accepts.
+
+2. **Usage** — Any module that imports the defining module can apply the custom keyword via the prefix, just like a typedef is referenced via a prefix.
+
+Suppose we want to annotate YANG nodes with a URL pointing to their external documentation. No built-in YANG statement does this, so we define an extension.
+
+doc_extensions.yang
+
+```yang
+module doc_extensions {
+    yang-version 1.1;
+    namespace "urn:example:doc";
+    prefix "doc";
+    revision 2019-05-06;
+    extension doc-url {
+        argument "url";
+        description
+            "Annotates a node with a URL to its external documentation.";
+    }
+}
+```
+
+The `extension doc-url` statement declares a new keyword called `doc-url` that takes a single argument named `url`. By itself, this declaration does nothing — it simply makes the keyword available for other modules to use.
+
+Our `engineer` module can now import `doc_extensions` and apply the custom keyword to annotate individual nodes.
+
+engineer.yang (updated with extension usage)
+
+```yang
+module engineer {
+    yang-version 1.1;
+    namespace "urn:nokia.com:srexperts:engineer";
+    prefix "engineer";
+    import engineer_types {
+        prefix "types";
+    }
+    import doc_extensions {
+        prefix "doc";
+    }
+    revision 2019-05-06;
+    container engineer {
+        doc:doc-url "https://wiki.example.com/engineer-model";
+        description "Engineer record";
+        leaf name {
+            mandatory true;
+            type string;
+        }
+        leaf age {
+            type types:age_type;
+        }
+        leaf commute {
+            type types:transportation_type;
+        }
+        uses types:contact-info;
+    }
+}
+```
+
+The line `doc:doc-url "https://wiki.example.com/engineer-model"` uses the custom keyword. The prefix `doc` resolves to the `doc_extensions` module, and `doc-url` is the extension keyword defined there. The string argument is the URL value. A YANG compiler recognizes this as a valid extension usage and preserves the annotation in the data model.
+
+Extensions are the mechanism that makes YANG open-ended. Real-world systems use them extensively:
+
+- **SONiC** defines a [`sonic-extension`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/models/yang/sonic/common/sonic-extension.yang) module with extensions such as `sonic-ext:db-name`, `sonic-ext:custom-validation`, and `sonic-ext:dependent-on` to map YANG models to the SONiC Redis datastore and hook platform-specific validation logic. See [gNMI in SONiC — SONiC Extension Definitions](09_README_gnmi_sonic.md#sonic-extension-definitions) for detailed examples from upstream code.
+
+- **OpenConfig** defines `oc-ext:openconfig-version` to embed semantic version numbers in modules.
+
+- **IETF** defines extensions in modules like `ietf-yang-metadata` (RFC 7952) to attach metadata to YANG data instances.
+
+In each case the pattern is the same: one module declares the extension keyword, and other modules import it and apply it wherever needed. Combined with `augment`, this creates a powerful overlay model — a module can augment a third-party data model and attach extension-defined annotations to it, all without modifying the original module.
 
 ## YIN
 
@@ -342,28 +536,28 @@ Suppose we want to add a constraint where the `commute` method of transportation
 
 ```yang
 leaf age {
-	type types:age_type;
+    type types:age_type;
 }
 leaf commute {
-	type types:transportation_type;
-	must "../age >= 18" {
-		error-message "Engineer must be at least 18";
-	}
+    type types:transportation_type;
+    must "../age >= 18" {
+        error-message "Engineer must be at least 18";
+    }
 }
 ```
 
 The expression above checks the value of the `age` leaf at the same hierarchical level as `commute` (indicated by `..`, which navigates up to the parent node, then selects the `age` leaf). If the condition is not met, the model will violate the constraint, triggering the error-message. This use of XPath allows you to define complex logic and interdependencies between data elements in a YANG model, ensuring the data's integrity and applicability within the defined constraints.
 
-We can use XPath with `when` statement. The `when` statement effectively makes the inclusion of certain configuration data conditional, allowing for more flexible and context-sensitive data models. This mechanism is particularly useful for creating models that adapt to different scenarios or configurations dynamically. As an example, if the condition specified by the `when` statement is not met (meaning if the age is less than 18), the `commute` leaf is not considered relevant or applicable, and thus it won't be required or present in the data structure for those instances.
+XPath can also be used with the `when` statement. While `must` rejects invalid data, `when` controls whether a node is relevant at all. If the `when` condition evaluates to `false`, the node is hidden from the data tree entirely — it cannot be set or queried. This is useful for building context-sensitive models that adapt to different configurations. For example, if the engineer's age is less than 18, the `commute` leaf does not appear in the data structure for that instance.
 
 ```yang
 leaf age {
-	type types:age_type;
+    type types:age_type;
 }
 leaf commute {
-	type types:transportation_type;
-	when "../age >= 18" {
-		description "is applicable for engineers >= 18 years old";
-	}
+    type types:transportation_type;
+    when "../age >= 18" {
+        description "Applicable only for engineers aged 18 or older";
+    }
 }
 ```

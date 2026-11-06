@@ -135,6 +135,58 @@ openconfig-acl-annot.yang
 openconfig-interfaces-annot.yang
 ```
 
+### SONiC Extension Definitions
+
+The `extensions/` directory contains the [`sonic-extension`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/models/yang/sonic/common/sonic-extension.yang) module, which declares custom YANG extensions specific to the SONiC platform. These extensions bridge the gap between standard YANG modeling constructs and SONiC's Redis-centric architecture. For background on how YANG extensions work in general, see the [YANG Language Reference — Extension in YANG](05a_README_yang_syntax.md#extension-in-yang).
+
+| Extension | Purpose | Example Usage |
+| --------- | ------- | ------------- |
+| `sonic-ext:db-name` | Specifies which Redis database a container maps to | `sonic-ext:db-name "APPL_DB"` |
+| `sonic-ext:key-delim` | Overrides the default `\|` key delimiter | `sonic-ext:key-delim ":"` |
+| `sonic-ext:map-list` | Marks a list as a mapping table | `sonic-ext:map-list "true"` |
+| `sonic-ext:custom-validation` | Registers a platform-specific validation callback | `sonic-ext:custom-validation ValidateStpFeatureEnabled` |
+| `sonic-ext:dependent-on` | Declares table-level ordering dependencies | `sonic-ext:dependent-on "STP_LIST"` |
+
+Below is a condensed excerpt from the upstream [`sonic-spanning-tree.yang`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/cvl/testdata/schema/sonic-spanning-tree.yang) that shows `custom-validation` and `dependent-on` in action:
+
+```yang
+import sonic-extension {
+    prefix sonic-ext;
+}
+
+container STP {
+    list STP_LIST {
+        sonic-ext:custom-validation ValidateStpFeatureEnabled;
+        key "keyleaf";
+        // ...
+    }
+}
+
+container STP_VLAN {
+    list STP_VLAN_LIST {
+        key "name";
+        sonic-ext:dependent-on "STP_LIST";
+        // ...
+    }
+}
+```
+
+The `custom-validation` extension registers a named callback (`ValidateStpFeatureEnabled`) that CVL invokes when the `STP_LIST` is created or modified. This allows SONiC to enforce platform-specific rules that cannot be expressed with standard YANG constraints. The `dependent-on` extension tells the system that `STP_VLAN_LIST` depends on `STP_LIST`, so during creation the parent is written first, and during deletion the dependent is removed first.
+
+The following excerpt from the upstream [`sonic-vxlan.yang`](https://github.com/sonic-net/sonic-buildimage/blob/master/src/sonic-mgmt-common/cvl/testdata/schema/sonic-vxlan.yang) shows `db-name` and `key-delim` mapping state data to a non-default Redis database:
+
+```yang
+container VXLAN_TUNNEL_TABLE {
+    sonic-ext:db-name "STATE_DB";
+    sonic-ext:key-delim ":";
+    config false;
+    description "State DB VXLAN tunnel table";
+    // ...
+}
+```
+
+By default, SONiC YANG models map to CONFIG_DB with `|` as the key delimiter. The `db-name` extension overrides the target database (here `STATE_DB`), and `key-delim` overrides the delimiter (here `:`). These extensions allow a single YANG model to span multiple Redis databases, which is essential because SONiC distributes data across CONFIG_DB, STATE_DB, APPL_DB, and COUNTERS_DB as described in the [Redis Database Access](#redis-database-access) section below.
+
 ## Request Processing and Data Flow
 
 When a gNMI client sends a request to a SONiC device, the request follows a structured processing pipeline through the components introduced above.

@@ -59,17 +59,26 @@ By combining gRPC, Protocol Buffers, and YANG-based data models, gNMI enables sc
 
 Because the technologies involved in modern telemetry such as RPC frameworks, serialization formats, and data modeling can be complex, this project includes a structured set of guides designed to build knowledge progressively. The following documents introduce the underlying concepts step by step, beginning with basic remote communication principles and gradually moving toward SONiC-specific telemetry implementations.
 
+**RPC & Transport Foundations**
+
 - [Remote Procedure Calls (RPC)](./docs/01_README_RPC.md): Introduction to Remote Procedure Calls (RPC).
 - [JSON-RPC](./docs/02_README_json_rpc.md): Understanding JSON-RPC mechanics.
 - [Protocol Buffers (Protobuf)](./docs/03_README_proto.md): Data serialization using Protocol Buffers (Protobuf).
 - [gRPC framework](./docs/04_README_gRPC.md): The gRPC framework and HTTP/2 transport.
-- [Data modeling with YANG](./docs/05_README_yang.md): Data modeling with YANG and OpenConfig.
+
+**Data Modeling with YANG**
+
+- [YANG introduction](./docs/05_README_yang.md): Data modeling with YANG and OpenConfig.
 - [YANG language reference](./docs/05a_README_yang_syntax.md): Detailed walkthrough of YANG syntax, types, and constructs.
 - [YANG validation](./docs/05b_README_yang_validation.md): How YANG models enforce data correctness, and the tools used to validate data.
+- [YANG models in SONiC](./docs/05c_README_yang_sonic.md): Inventory of OpenConfig, gNSI, and native YANG models shipped with SONiC, including extensions and annotations.
+
+**Network Management & gNMI**
+
 - [Network management protocols](./docs/06_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
-- [gRPC networking suite](./docs/07_README_grpc_suite.md): gRPC-based networking suites.
+- [gRPC networking suite](./docs/07_README_grpc_suite.md): gRPC-based networking suites (gNMI, gNOI, gNSI, gRIBI).
 - [gNMI core concepts](./docs/08_README_gnmi.md): Core operations and capabilities of the gNMI standard.
-- [gNMI in SONiC](./docs/09_README_gnmi_sonic.md): Implementing and consuming gNMI specifically within the SONiC OS.
+- [gNMI in SONiC](./docs/09_README_gnmi_sonic.md): Implementing and consuming gNMI within the SONiC NOS.
 
 ## GNS3 Topology
 

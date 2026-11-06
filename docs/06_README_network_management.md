@@ -31,7 +31,7 @@ YANG Data Models
 NETCONF / RESTCONF / gNMI
 ```
 
-<img src="../pics/yang_usage.png" alt="segment" width="500">
+<img src="../pics/yang-net-mgmt.png" alt="segment" width="500">
 
 | Feature       | NETCONF                         | RESTCONF                    | gNMI                                  |
 | ------------- | ------------------------------- | --------------------------- | ------------------------------------- |

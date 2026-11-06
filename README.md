@@ -64,6 +64,8 @@ Because the technologies involved in modern telemetry such as RPC frameworks, se
 - [Protocol Buffers (Protobuf)](./docs/03_README_proto.md): Data serialization using Protocol Buffers (Protobuf).
 - [gRPC framework](./docs/04_README_gRPC.md): The gRPC framework and HTTP/2 transport.
 - [Data modeling with YANG](./docs/05_README_yang.md): Data modeling with YANG and OpenConfig.
+- [YANG language reference](./docs/05a_README_yang_syntax.md): Detailed walkthrough of YANG syntax, types, and constructs.
+- [YANG validation](./docs/05b_README_yang_validation.md): How YANG models enforce data correctness, and the tools used to validate data.
 - [Network management protocols](./docs/06_README_network_management.md): The evolution from SNMP to modern programmatic interfaces.
 - [gRPC networking suite](./docs/07_README_grpc_suite.md): gRPC-based networking suites.
 - [gNMI core concepts](./docs/08_README_gnmi.md): Core operations and capabilities of the gNMI standard.

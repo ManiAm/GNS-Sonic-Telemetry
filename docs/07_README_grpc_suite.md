@@ -51,3 +51,7 @@ The P4 language allows developers to define how packets are parsed, matched, and
 This architecture enables highly flexible networking systems where packet-processing logic can be customized without modifying hardware. Network operators can implement new protocols, deploy custom forwarding policies, or adapt packet processing to specialized workloads. As a result, P4Runtime plays an important role in programmable networking environments and advanced data center architectures.
 
 > For a detailed discussion of gNMI, including its design principles, protocol specification, and RPC operations, refer to the [gNMI guide](./08_README_gnmi.md). For information on how gNMI is implemented in SONiC, see [gNMI in SONiC](./09_README_gnmi_sonic.md).
+
+---
+
+**Previous**: [← Network Management Protocols](06_README_network_management.md) · **Next**: [gNMI (gRPC Network Management Interface) →](08_README_gnmi.md)

@@ -130,3 +130,7 @@ OpenConfig is an effort among multiple network operators to develop and deploy v
 OpenConfig's primary focus is on creating YANG models that are directly usable for automating the configuration and management of network devices. OpenConfig data models are written in YANG v1.0. The official distribution channel for OpenConfig YANG models is [this](https://github.com/openconfig/public/) public GitHub repository. You can find the documentation [here](https://openconfig.net/projects/models/schemadocs/).
 
 > YANG data models are used by several network management protocols including NETCONF, RESTCONF, and gNMI. These protocols and their relationship to YANG are covered in [Network Management Protocols](./06_README_network_management.md) and [gNMI](./08_README_gnmi.md).
+
+---
+
+**Previous**: [← gRPC (Google Remote Procedure Call)](04_README_gRPC.md) · **Next**: [YANG Module Structure →](05a_README_yang_syntax.md)

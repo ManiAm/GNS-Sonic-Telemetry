@@ -67,3 +67,7 @@ However, RESTCONF operates using stateless HTTP connections, which means each re
 ### gNMI
 
 Refer to [gNMI guide](./08_README_gnmi.md) for more details.
+
+---
+
+**Previous**: [← YANG-to-Redis Translation in SONiC](05d_README_yang_translation_sonic.md) · **Next**: [The gRPC Networking Suite →](07_README_grpc_suite.md)

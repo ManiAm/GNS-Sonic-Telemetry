@@ -419,3 +419,7 @@ message Person {
 ```
 
 The `reserved` statement prevents field number 2 from being reused in the future. This avoids situations where older serialized data might incorrectly map a reused field number to a different meaning.
+
+---
+
+**Previous**: [← JSON-RPC Example](02_README_json_rpc.md) · **Next**: [gRPC (Google Remote Procedure Call) →](04_README_gRPC.md)

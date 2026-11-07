@@ -103,3 +103,7 @@ In **strongly typed** RPC systems, the structure and data types of requests and 
 In contrast, **weakly typed** RPC systems allow more flexibility in the data that can be transmitted between client and server. These systems typically use dynamic serialization formats such as JSON or XML without enforcing strict schemas at the protocol level. As a result, clients can send parameters of different types without immediate validation, and the server must perform its own type checking when processing the request. While this approach simplifies implementation and improves interoperability across loosely coupled systems, it can introduce runtime errors if unexpected data types are received. Protocols such as XML-RPC and JSON-RPC follow this model, relying on the application logic rather than the protocol itself to enforce type correctness.
 
 > The next document provides a practical [JSON-RPC Example](./02_README_json_rpc.md) that demonstrates these RPC concepts using a simple Python implementation.
+
+---
+
+**Next**: [JSON-RPC Example →](02_README_json_rpc.md)

@@ -121,3 +121,7 @@ docs    : https://gnmic.openconfig.net
 ```
 
 This confirms the client is installed and ready to communicate with the SONiC gNMI server.
+
+---
+
+**Previous**: [← gNMI in SONiC](09_README_gnmi_sonic.md)

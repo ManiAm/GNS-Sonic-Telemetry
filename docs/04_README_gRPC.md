@@ -325,3 +325,7 @@ The previous sections covered the core concepts and primary mechanisms that make
     Distributes requests across multiple server instances to improve scalability and reliability.
 
 > gRPC serves as the foundation for several standardized networking protocols. These are covered in [The gRPC Networking Suite](./07_README_grpc_suite.md).
+
+---
+
+**Previous**: [← Protocol Buffers (Protobuf)](03_README_proto.md) · **Next**: [YANG (Yet Another Next Generation) →](05_README_yang.md)

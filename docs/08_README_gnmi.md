@@ -97,3 +97,7 @@ The Subscribe RPC enables streaming telemetry. Instead of polling the device rep
 - **TARGET_DEFINED**: the device determines the optimal reporting behavior (either sampled or on-change).
 
 This push-based telemetry model is one of the primary reasons gNMI is widely adopted in large-scale data center networks.
+
+---
+
+**Previous**: [← The gRPC Networking Suite](07_README_grpc_suite.md) · **Next**: [gNMI in SONiC →](09_README_gnmi_sonic.md)

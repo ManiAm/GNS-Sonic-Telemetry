@@ -129,3 +129,7 @@ sudo config yang_config_validation disable
 ```
 
 When the field is absent or set to `disable`, those subcommands store the fields directly without a YANG check. `config apply-patch` and `config replace` always validate regardless of this setting.
+
+---
+
+**Previous**: [← YANG Validation](05b_README_yang_validation.md) · **Next**: [YANG-to-Redis Translation in SONiC →](05d_README_yang_translation_sonic.md)

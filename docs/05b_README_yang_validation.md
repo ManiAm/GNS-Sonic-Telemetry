@@ -315,3 +315,7 @@ The general pattern is:
 Custom validation callbacks are implemented differently depending on the management framework. Some frameworks use YANG extensions to declare validation points directly in the model, while others use event-driven subscription mechanisms where application code registers to receive proposed changes before they are committed.
 
 The general guidance from [RFC 9907](https://www.rfc-editor.org/rfc/rfc9907.html) (YANG model guidelines) is clear: *express constraints in the YANG model whenever possible*. Custom validation should be reserved for rules that genuinely cannot be captured using YANG's built-in constructs. Keeping validation in the model makes constraints visible, portable, and enforceable by any compliant tool — whereas custom callbacks are implementation-specific and opaque to external systems.
+
+---
+
+**Previous**: [← YANG Module Structure](05a_README_yang_syntax.md) · **Next**: [YANG Validation in SONiC →](05c_README_yang_validation_sonic.md)

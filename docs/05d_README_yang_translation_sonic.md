@@ -219,3 +219,7 @@ OpenConfig models are industry-standardized specifications maintained by the Ope
 - Integrate the model into the SONiC build so the gNMI service recognizes the new paths.
 
 This mechanism enables developers to expose custom telemetry metrics or configuration parameters through the same standardized gNMI interface.
+
+---
+
+**Previous**: [← YANG Validation in SONiC](05c_README_yang_validation_sonic.md) · **Next**: [Network Management Protocols →](06_README_network_management.md)

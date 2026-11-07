@@ -168,3 +168,7 @@ Redis confirms the write *(step 24)*. Different gNMI operations target different
 Translib releases the write lock *(step 25)* and returns a success response to the gNMI server, which sends it back to the client *(step 26)*.
 
 For a `Get` request, the reverse path applies: Translib reads from Redis, and the `DbToYang_intf_mtu_xfmr` transformer converts the Redis string back into the OpenConfig `uint16` response.
+
+---
+
+**Previous**: [← gNMI (gRPC Network Management Interface)](08_README_gnmi.md) · **Next**: [GNS3 Lab Setup →](GNS_node_setup.md)
